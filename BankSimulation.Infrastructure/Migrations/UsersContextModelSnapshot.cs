@@ -28,13 +28,13 @@ namespace BankSimulation.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("Created")
+                    b.Property<DateTime>("CreationDate")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("Currency")
                         .HasColumnType("int");
 
-                    b.Property<bool>("Deleted")
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
                     b.Property<decimal>("Money")
@@ -57,38 +57,6 @@ namespace BankSimulation.Infrastructure.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("BankAccounts");
-                });
-
-            modelBuilder.Entity("BankSimulation.Domain.Entities.DeletedUser", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("Deleted")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("DeletedUsers");
                 });
 
             modelBuilder.Entity("BankSimulation.Domain.Entities.Deposit", b =>
@@ -181,7 +149,7 @@ namespace BankSimulation.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("Created")
+                    b.Property<DateTime>("CreationDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
@@ -193,6 +161,9 @@ namespace BankSimulation.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<string>("LastName")
                         .IsRequired()

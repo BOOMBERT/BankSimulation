@@ -21,19 +21,19 @@ namespace BankSimulation.API.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(EmailErrorResponse), StatusCodes.Status409Conflict)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<UserDto>> RegisterUser(CreateUserDto user)
+        public async Task<ActionResult<UserDto>> RegisterUser(CreateUserDto userToCreate)
         {
             try
             {
-                var userEntity = await _userService.CreateUserAsync(user);
-                return CreatedAtAction(nameof(GetUser), new { email = userEntity.Email }, userEntity);
+                var user = await _userService.CreateUserAsync(userToCreate);
+                return CreatedAtAction(nameof(GetUser), new { email = user.Email }, user);
             }
             catch (EmailAlreadyExistsException ex)
             {
                 var errorResponse = new EmailErrorResponse()
                 {
                     Message = ex.Message,
-                    Email = user.Email
+                    Email = userToCreate.Email
                 };
                 return Conflict(errorResponse);
             }
@@ -57,6 +57,27 @@ namespace BankSimulation.API.Controllers
                 return NotFound();
             }
             return Ok(user);
+        }
+
+        [HttpDelete]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> DeleteUser(Guid? id, string? email)
+        {
+            if (id == null && email == null)
+            {
+                return BadRequest();
+            }
+
+            var user = await _userService.GetUserAsync(id, email);
+
+            if (user == null || !await _userService.DeleteUserAsync(user.Id))
+            {
+                return NotFound();
+            }
+            
+            return NoContent();
         }
     }
 }

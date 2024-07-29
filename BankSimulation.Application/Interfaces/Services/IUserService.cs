@@ -6,5 +6,6 @@ namespace BankSimulation.Application.Interfaces.Services
     {
         Task<UserDto> CreateUserAsync(CreateUserDto user);
         Task<UserDto?> GetUserAsync(Guid? id, string? email);
+        Task<bool> DeleteUserAsync(Guid id);
     }
 }

@@ -6,6 +6,7 @@
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Email { get; set; }
-        public DateTime Created { get; set; } = DateTime.UtcNow;
+        public DateTime CreationDate { get; set; } = DateTime.UtcNow;
+        public bool IsDeleted { get; set; }
     }
 }

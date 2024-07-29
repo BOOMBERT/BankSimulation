@@ -39,13 +39,13 @@ namespace BankSimulation.Infrastructure.Services
         {
             User? userEntity = null;
 
-            if (email != null)
-            {
-                userEntity = await _userRepository.GetUserByEmailAsync(email);
-            }
-            else if (id != null)
+            if (id != null)
             {
                 userEntity = await _userRepository.GetUserByIdAsync((Guid)id);
+            }
+            else if (email != null)
+            {
+                userEntity = await _userRepository.GetUserByEmailAsync(email);
             }
 
             if (userEntity != null)
@@ -53,6 +53,18 @@ namespace BankSimulation.Infrastructure.Services
                 return _mapper.Map<UserDto>(userEntity);
             }
             return null;
+        }
+
+        public async Task<bool> DeleteUserAsync(Guid id)
+        {
+            var userEntity = await _userRepository.GetUserByIdAsync(id);
+
+            if (userEntity == null)
+            {
+                return false;
+            }
+            userEntity.IsDeleted = true;
+            return await _userRepository.SaveChangesAsync();
         }
     }
 }

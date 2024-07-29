@@ -9,7 +9,6 @@ namespace BankSimulation.Infrastructure.DbContexts
 
         public DbSet<User> Users { get; set; }
         public DbSet<SecurityQuestion> SecurityQuestions { get; set; }
-        public DbSet<DeletedUser> DeletedUsers { get; set; }
         public DbSet<BankAccount> BankAccounts { get; set; }
         public DbSet<Deposit> Deposits { get; set; }
         public DbSet<Withdraw> Withdraws { get; set; }
@@ -56,18 +55,6 @@ namespace BankSimulation.Infrastructure.DbContexts
 
                 eb.Property(sq => sq.Answer)
                 .IsRequired()
-                .HasMaxLength(256);
-            });
-
-            modelBuilder.Entity<DeletedUser>(eb => 
-            {
-                eb.Property(du => du.FirstName)
-                .HasMaxLength(64);
-
-                eb.Property(du => du.LastName)
-                .HasMaxLength(64);
-
-                eb.Property(du => du.Email)
                 .HasMaxLength(256);
             });
 

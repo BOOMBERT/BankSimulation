@@ -8,9 +8,9 @@ namespace BankSimulation.Domain.Entities
         public string Number { get; set; }
         public Currencies Currency { get; set; }
         public decimal Money { get; set; }
-        public DateTime Created { get; set; } = DateTime.UtcNow;
-        public bool Deleted { get; set; }
-
+        public DateTime CreationDate { get; set; } = DateTime.UtcNow;
+        public bool IsDeleted { get; set; }
+        
         public User User { get; set; }
         public Guid UserId { get; set; }
         public ICollection<Deposit> Deposits { get; set; } = new List<Deposit>();
