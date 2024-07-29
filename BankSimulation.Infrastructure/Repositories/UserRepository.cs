@@ -1,0 +1,42 @@
+﻿using BankSimulation.Application.Interfaces.Repositories;
+using BankSimulation.Domain.Entities;
+using BankSimulation.Infrastructure.DbContexts;
+using Microsoft.EntityFrameworkCore;
+
+namespace BankSimulation.Infrastructure.Repositories
+{
+    public class UserRepository : IUserRepository
+    {
+        private readonly UsersContext _context;
+
+        public UserRepository(UsersContext context)
+        {
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+        }
+
+        public async Task AddUserAsync(User user)
+        {
+            await _context.Users.AddAsync(user);
+        }
+
+        public async Task<User?> GetUserByIdAsync(Guid id)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+        }
+
+        public async Task<User?> GetUserByEmailAsync(string email)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+        }
+
+        public async Task<bool> EmailAlreadyExistsAsync(string email)
+        {
+            return await _context.Users.AnyAsync(u => u.Email == email);
+        }
+
+        public async Task<bool> SaveChangesAsync()
+        {
+            return (await _context.SaveChangesAsync() >= 0);
+        }
+    }
+}

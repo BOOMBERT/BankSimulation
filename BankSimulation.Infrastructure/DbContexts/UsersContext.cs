@@ -9,6 +9,7 @@ namespace BankSimulation.Infrastructure.DbContexts
 
         public DbSet<User> Users { get; set; }
         public DbSet<SecurityQuestion> SecurityQuestions { get; set; }
+        public DbSet<DeletedUser> DeletedUsers { get; set; }
         public DbSet<BankAccount> BankAccounts { get; set; }
         public DbSet<Deposit> Deposits { get; set; }
         public DbSet<Withdraw> Withdraws { get; set; }
@@ -42,6 +43,9 @@ namespace BankSimulation.Infrastructure.DbContexts
                 .WithOne(ba => ba.User)
                 .HasForeignKey(ba => ba.UserId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+                eb.HasIndex(u => u.Email)
+                .IsUnique();
             });
 
             modelBuilder.Entity<SecurityQuestion>(eb =>
@@ -55,7 +59,19 @@ namespace BankSimulation.Infrastructure.DbContexts
                 .HasMaxLength(256);
             });
 
-            modelBuilder.Entity<BankAccount>(eb => 
+            modelBuilder.Entity<DeletedUser>(eb => 
+            {
+                eb.Property(du => du.FirstName)
+                .HasMaxLength(64);
+
+                eb.Property(du => du.LastName)
+                .HasMaxLength(64);
+
+                eb.Property(du => du.Email)
+                .HasMaxLength(256);
+            });
+
+            modelBuilder.Entity<BankAccount>(eb =>
             {
                 eb.Property(ba => ba.Number)
                 .IsRequired()
@@ -83,12 +99,12 @@ namespace BankSimulation.Infrastructure.DbContexts
                 .WithOne(t => t.RecipientBankAccount)
                 .HasForeignKey(t => t.RecipientBankAccountId)
                 .OnDelete(DeleteBehavior.NoAction);
-            
+
                 eb.HasIndex(ba => ba.Number)
                 .IsUnique();
             });
 
-            modelBuilder.Entity<Withdraw>(eb => 
+            modelBuilder.Entity<Withdraw>(eb =>
             {
                 eb.Property(w => w.Amount)
                 .HasPrecision(18, 2);
