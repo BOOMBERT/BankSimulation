@@ -19,7 +19,7 @@ namespace BankSimulation.API.Controllers
 
         [HttpPost("register")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(typeof(EmailErrorResponse), StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(EmailErrorResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<UserDto>> RegisterUser(CreateUserDto userToCreate)
         {
@@ -61,23 +61,29 @@ namespace BankSimulation.API.Controllers
 
         [HttpDelete]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(UserErrorResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> DeleteUser(Guid? id, string? email)
+        public async Task<IActionResult> DeleteUser(Guid? id)
         {
-            if (id == null && email == null)
+            if (id == null)
             {
                 return BadRequest();
             }
 
-            var user = await _userService.GetUserAsync(id, email);
-
-            if (user == null || !await _userService.DeleteUserAsync(user.Id))
+            try
             {
-                return NotFound();
+                await _userService.DeleteUserAsync((Guid)id);
+                return NoContent();
             }
-            
-            return NoContent();
+            catch (UserNotFound ex)
+            {
+                var errorResponse = new UserErrorResponse()
+                {
+                    Message = ex.Message,
+                    Id = (Guid)id
+                };
+                return NotFound(errorResponse);
+            }
         }
     }
 }
