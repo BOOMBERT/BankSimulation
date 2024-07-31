@@ -12,6 +12,7 @@ namespace BankSimulation.Application.Dtos.User
         [EmailAddress]
         public required string Email { get; set; }
         [PasswordValidation(8, 256)]
+        [DataType(DataType.Password)]
         public required string Password { get; set; }
     }
 }

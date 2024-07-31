@@ -10,6 +10,7 @@ namespace BankSimulation.Application.Profiles
         {
             CreateMap<CreateUserDto, User>();
             CreateMap<User, UserDto>();
+            CreateMap<User, AuthUserDto>();
         }
     }
 }

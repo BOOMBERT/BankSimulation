@@ -35,7 +35,7 @@ namespace BankSimulation.Infrastructure.Services
             return userToReturn;
         }
 
-        public async Task<UserDto?> GetUserAsync(Guid? id, string? email)
+        public async Task<UserDto?> GetUserAsync(Guid? id = null, string? email = null)
         {
             User? userEntity = null;
 
@@ -53,6 +53,17 @@ namespace BankSimulation.Infrastructure.Services
                 return _mapper.Map<UserDto>(userEntity);
             }
             return null;
+        }
+
+        public async Task<AuthUserDto?> GetUserAuthDataAsync(string email)
+        {
+            var userEntity = await _userRepository.GetUserByEmailAsync(email);
+
+            if (userEntity == null)
+            {
+                return null;
+            }
+            return _mapper.Map<AuthUserDto>(userEntity);
         }
 
         public async Task<bool> DeleteUserAsync(Guid id)

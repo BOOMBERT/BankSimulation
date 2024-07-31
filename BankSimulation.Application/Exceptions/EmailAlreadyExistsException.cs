@@ -2,7 +2,12 @@
 {
     public class EmailAlreadyExistsException : Exception
     {
+        public string? Email { get; init; }
+
         public EmailAlreadyExistsException() : base("This email address already exists.") { }
-        public EmailAlreadyExistsException(string email) : base($"Email '{email}' is already registered.") { }
+        public EmailAlreadyExistsException(string email) : base($"Email address '{email}' already exists.") 
+        {
+            Email = email;
+        }
     }
 }
