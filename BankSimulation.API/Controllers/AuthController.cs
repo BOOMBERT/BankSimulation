@@ -1,8 +1,10 @@
-﻿using BankSimulation.Application.Dtos.Responses;
+﻿using BankSimulation.Application.Dtos.Auth;
+using BankSimulation.Application.Dtos.Responses;
 using BankSimulation.Application.Dtos.User;
 using BankSimulation.Application.Exceptions;
 using BankSimulation.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 
 namespace BankSimulation.API.Controllers
 {
@@ -43,22 +45,61 @@ namespace BankSimulation.API.Controllers
 
         [HttpPost("login")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ErrorResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<TokenResponse>> Login(LoginUserDto userToLogin)
+        public async Task<ActionResult<AccessTokenDto>> Login(LoginUserDto userToLogin)
         {
-            var user = await _userService.GetUserAuthDataAsync(userToLogin.Email);
-
-           if (user == null || !_authService.VerifyUserPassword(userToLogin.Password, user.Password))
+            try
             {
-                return Unauthorized();
-            }
+                var (accessToken, refreshToken) = await _authService.AuthenticateUserAsync(userToLogin);
+                SetRefreshToken(refreshToken);
+                return Ok(accessToken);
 
-            var accessToken = new TokenResponse 
-            { 
-                AccessToken = _authService.GenerateAccessToken(user) 
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                var errorResponse = new ErrorResponse()
+                {
+                    Title = $"Problem with the credentials.",
+                    Detail = ex.Message
+                };
+                return Unauthorized(errorResponse);
+            }
+        }
+
+        [HttpPost("refresh")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<AccessTokenDto>> RefreshTokens(AccessTokenDto accessTokenToRefresh)
+        {
+            var refreshTokenFromCookie = Request.Cookies["refreshToken"];
+
+            try
+            {
+                var (accessToken, refreshToken) = await _authService.RefreshTokensAsync(accessTokenToRefresh.AccessToken, refreshTokenFromCookie);
+                SetRefreshToken(refreshToken);
+                return Ok(accessToken);
+            }
+            catch (SecurityTokenException ex)
+            {
+                var errorResponse = new ErrorResponse()
+                {
+                    Title = $"Problem with the tokens.",
+                    Detail = ex.Message
+                };
+                return Unauthorized(errorResponse);
+            }
+        }
+
+        private void SetRefreshToken(RefreshTokenDto refreshToken)
+        {
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Expires = refreshToken.ExpirationDate
             };
-            return Ok(accessToken);
+            Response.Cookies.Append("refreshToken", refreshToken.Token, cookieOptions);
         }
     }
 }

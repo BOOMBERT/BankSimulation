@@ -13,6 +13,7 @@ namespace BankSimulation.Infrastructure.DbContexts
         public DbSet<Deposit> Deposits { get; set; }
         public DbSet<Withdraw> Withdraws { get; set; }
         public DbSet<Transfer> Transfers { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -42,6 +43,10 @@ namespace BankSimulation.Infrastructure.DbContexts
                 .WithOne(ba => ba.User)
                 .HasForeignKey(ba => ba.UserId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+                eb.HasOne(u => u.RefreshToken)
+                .WithOne(rt => rt.User)
+                .HasForeignKey<RefreshToken>(rt => rt.UserId);
 
                 eb.HasIndex(u => u.Email)
                 .IsUnique();
@@ -107,6 +112,16 @@ namespace BankSimulation.Infrastructure.DbContexts
             {
                 eb.Property(t => t.Amount)
                 .HasPrecision(18, 2);
+            });
+
+            modelBuilder.Entity<RefreshToken>(eb =>
+            {
+                eb.Property(rt => rt.Token)
+                .IsRequired()
+                .HasMaxLength(256);
+
+                eb.Property(rt => rt.ExpirationDate)
+                .IsRequired();
             });
         }
     }

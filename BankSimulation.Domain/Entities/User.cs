@@ -12,5 +12,6 @@
 
         public SecurityQuestion SecurityQuestion { get; set; }
         public ICollection<BankAccount> BankAccounts { get; set; } = new List<BankAccount>();
+        public RefreshToken RefreshToken { get; set; }
     }
 }

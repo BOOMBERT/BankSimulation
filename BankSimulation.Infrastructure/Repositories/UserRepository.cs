@@ -34,6 +34,21 @@ namespace BankSimulation.Infrastructure.Repositories
             return await _context.Users.AnyAsync(u => u.Email == email);
         }
 
+        public async Task AddUserRefreshTokenAsync(RefreshToken refreshToken)
+        {
+            await _context.RefreshTokens.AddAsync(refreshToken);
+        }
+
+        public async Task<RefreshToken?> GetUserRefreshTokenAsync(Guid userId)
+        {
+            return await _context.RefreshTokens.SingleOrDefaultAsync(rt => rt.UserId == userId);
+        }
+
+        public void DeleteUserRefreshToken(RefreshToken refreshToken)
+        {
+            _context.RefreshTokens.Remove(refreshToken);
+        }
+
         public async Task<bool> SaveChangesAsync()
         {
             return (await _context.SaveChangesAsync() >= 0);

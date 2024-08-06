@@ -1,10 +1,11 @@
-﻿using BankSimulation.Application.Dtos.User;
+﻿using BankSimulation.Application.Dtos.Auth;
+using BankSimulation.Application.Dtos.User;
 
 namespace BankSimulation.Application.Interfaces.Services
 {
     public interface IAuthService
     {
-        string GenerateAccessToken(AuthUserDto user);
-        bool VerifyUserPassword(string plainPassword, string passwordHash);
+        Task<(AccessTokenDto, RefreshTokenDto)> AuthenticateUserAsync(LoginUserDto userToAuth);
+        Task<(AccessTokenDto, RefreshTokenDto)> RefreshTokensAsync(string accessToken, string? refreshToken);
     }
 }
