@@ -12,7 +12,7 @@ namespace BankSimulation.Application.Interfaces.Repositories
         Task AddUserRefreshTokenAsync(RefreshToken refreshToken);
         Task<RefreshToken?> GetUserRefreshTokenAsync(Guid userId);
         void DeleteUserRefreshToken(RefreshToken refreshToken);
-        Task<IList<AccessRole>> GetUserAccessRolesAsync(Guid userId);
+        Task<IList<AccessRole>?> GetUserAccessRolesAsync(Guid userId);
         Task<bool> SaveChangesAsync();
     }
 }

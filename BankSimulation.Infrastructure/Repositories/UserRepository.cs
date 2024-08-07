@@ -50,12 +50,12 @@ namespace BankSimulation.Infrastructure.Repositories
             _context.RefreshTokens.Remove(refreshToken);
         }
 
-        public async Task<IList<AccessRole>> GetUserAccessRolesAsync(Guid userId)
+        public async Task<IList<AccessRole>?> GetUserAccessRolesAsync(Guid userId)
         {
             return await _context.Users
                 .Where(u => u.Id == userId)
-                .SelectMany(u => u.AccessRoles)
-                .ToListAsync();
+                .Select(u => u.AccessRoles)
+                .SingleOrDefaultAsync();
         }
 
         public async Task<bool> SaveChangesAsync()
