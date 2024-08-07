@@ -54,7 +54,6 @@ namespace BankSimulation.API.Controllers
                 var (accessToken, refreshToken) = await _authService.AuthenticateUserAsync(userToLogin);
                 SetRefreshToken(refreshToken);
                 return Ok(accessToken);
-
             }
             catch (UnauthorizedAccessException ex)
             {

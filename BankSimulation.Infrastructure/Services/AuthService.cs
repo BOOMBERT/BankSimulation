@@ -4,6 +4,7 @@ using BankSimulation.Application.Dtos.User;
 using BankSimulation.Application.Interfaces.Repositories;
 using BankSimulation.Application.Interfaces.Services;
 using BankSimulation.Domain.Entities;
+using BankSimulation.Domain.Enums;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -46,7 +47,7 @@ namespace BankSimulation.Infrastructure.Services
             var newRefreshToken = await CreateUserRefreshTokenAsync(user.Id);
 
             return (
-                new AccessTokenDto { AccessToken = GenerateAccessToken(newRefreshToken.UserId) },
+                new AccessTokenDto { AccessToken = GenerateAccessToken(newRefreshToken.UserId, user.accessRoles) },
                 new RefreshTokenDto { Token = newRefreshToken.Token, ExpirationDate = newRefreshToken.ExpirationDate }
             );
         }
@@ -76,8 +77,10 @@ namespace BankSimulation.Infrastructure.Services
             _userRepository.DeleteUserRefreshToken(storedRefreshToken);
             var newRefreshToken = await CreateUserRefreshTokenAsync(storedRefreshToken.UserId);
 
+            var userRoles = await _userRepository.GetUserAccessRolesAsync(newRefreshToken.UserId) ?? Enumerable.Empty<AccessRole>();
+
             return (
-                new AccessTokenDto { AccessToken = GenerateAccessToken(newRefreshToken.UserId) },
+                new AccessTokenDto { AccessToken = GenerateAccessToken(newRefreshToken.UserId, userRoles) },
                 new RefreshTokenDto { Token = newRefreshToken.Token, ExpirationDate = newRefreshToken.ExpirationDate }
                 );
         }
@@ -126,12 +129,17 @@ namespace BankSimulation.Infrastructure.Services
             return refreshToken;
         }
 
-        private string GenerateAccessToken(Guid userId)
+        private string GenerateAccessToken(Guid userId, IEnumerable<AccessRole> userAccessRoles)
         {
             var claims = new List<Claim>
             {
-                new(JwtRegisteredClaimNames.Sub, userId.ToString())
+                new(JwtRegisteredClaimNames.Sub, userId.ToString()),
             };
+
+            foreach (var role in userAccessRoles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role.ToString()));
+            }
 
             var key = new SymmetricSecurityKey
                 (Encoding.UTF8.GetBytes(_configuration["JwtSettings:Key"]!));

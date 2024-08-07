@@ -1,5 +1,6 @@
 ﻿using BankSimulation.Application.Interfaces.Repositories;
 using BankSimulation.Domain.Entities;
+using BankSimulation.Domain.Enums;
 using BankSimulation.Infrastructure.DbContexts;
 using Microsoft.EntityFrameworkCore;
 
@@ -47,6 +48,14 @@ namespace BankSimulation.Infrastructure.Repositories
         public void DeleteUserRefreshToken(RefreshToken refreshToken)
         {
             _context.RefreshTokens.Remove(refreshToken);
+        }
+
+        public async Task<IList<AccessRole>> GetUserAccessRolesAsync(Guid userId)
+        {
+            return await _context.Users
+                .Where(u => u.Id == userId)
+                .SelectMany(u => u.AccessRoles)
+                .ToListAsync();
         }
 
         public async Task<bool> SaveChangesAsync()

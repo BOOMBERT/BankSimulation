@@ -2,6 +2,7 @@
 using BankSimulation.Application.Dtos.User;
 using BankSimulation.Application.Exceptions;
 using BankSimulation.Application.Interfaces.Services;
+using BankSimulation.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,7 +19,7 @@ namespace BankSimulation.API.Controllers
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
         }
 
-        [HttpGet, Authorize]
+        [HttpGet, Authorize(Roles = nameof(AccessRole.Admin))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -38,7 +39,7 @@ namespace BankSimulation.API.Controllers
             return Ok(user);
         }
 
-        [HttpDelete, Authorize]
+        [HttpDelete, Authorize(Roles = nameof(AccessRole.Admin))]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

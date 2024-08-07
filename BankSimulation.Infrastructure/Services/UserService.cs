@@ -4,6 +4,7 @@ using BankSimulation.Application.Exceptions;
 using BankSimulation.Application.Interfaces.Repositories;
 using BankSimulation.Application.Interfaces.Services;
 using BankSimulation.Domain.Entities;
+using BankSimulation.Domain.Enums;
 
 namespace BankSimulation.Infrastructure.Services
 {
@@ -27,6 +28,7 @@ namespace BankSimulation.Infrastructure.Services
 
             var userEntity = _mapper.Map<User>(user);
             userEntity.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
+            userEntity.AccessRoles.Add(AccessRole.Customer);
 
             await _userRepository.AddUserAsync(userEntity);
             await _userRepository.SaveChangesAsync();

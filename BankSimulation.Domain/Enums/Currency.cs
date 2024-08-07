@@ -1,6 +1,6 @@
 ﻿namespace BankSimulation.Domain.Enums
 {
-    public enum Currencies
+    public enum Currency
     {
         EUR, USD, GBP, CHF, PLN
     }

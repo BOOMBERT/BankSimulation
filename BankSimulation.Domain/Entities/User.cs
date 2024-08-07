@@ -1,4 +1,6 @@
-﻿namespace BankSimulation.Domain.Entities
+﻿using BankSimulation.Domain.Enums;
+
+namespace BankSimulation.Domain.Entities
 {
     public class User
     {
@@ -13,5 +15,6 @@
         public SecurityQuestion SecurityQuestion { get; set; }
         public ICollection<BankAccount> BankAccounts { get; set; } = new List<BankAccount>();
         public RefreshToken RefreshToken { get; set; }
+        public IList<AccessRole> AccessRoles { get; set; } = new List<AccessRole>();
     }
 }

@@ -6,7 +6,7 @@ namespace BankSimulation.Domain.Entities
     {
         public Guid Id { get; set; }
         public string Number { get; set; }
-        public Currencies Currency { get; set; }
+        public Currency Currency { get; set; }
         public decimal Money { get; set; }
         public DateTime CreationDate { get; set; } = DateTime.UtcNow;
         public bool IsDeleted { get; set; }

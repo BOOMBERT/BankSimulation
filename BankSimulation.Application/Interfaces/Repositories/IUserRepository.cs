@@ -1,4 +1,5 @@
 ﻿using BankSimulation.Domain.Entities;
+using BankSimulation.Domain.Enums;
 
 namespace BankSimulation.Application.Interfaces.Repositories
 {
@@ -11,6 +12,7 @@ namespace BankSimulation.Application.Interfaces.Repositories
         Task AddUserRefreshTokenAsync(RefreshToken refreshToken);
         Task<RefreshToken?> GetUserRefreshTokenAsync(Guid userId);
         void DeleteUserRefreshToken(RefreshToken refreshToken);
+        Task<IList<AccessRole>> GetUserAccessRolesAsync(Guid userId);
         Task<bool> SaveChangesAsync();
     }
 }
