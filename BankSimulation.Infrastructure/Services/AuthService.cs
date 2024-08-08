@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using BankSimulation.Application.Dtos.Auth;
 using BankSimulation.Application.Dtos.User;
+using BankSimulation.Application.Exceptions;
 using BankSimulation.Application.Interfaces.Repositories;
 using BankSimulation.Application.Interfaces.Services;
 using BankSimulation.Domain.Entities;
@@ -38,6 +39,8 @@ namespace BankSimulation.Infrastructure.Services
                 throw new UnauthorizedAccessException("Invalid credentials.");
             }
 
+            if (user.IsDeleted) { throw new UserNotFound(); }
+
             var storedRefreshToken = await _userRepository.GetUserRefreshTokenAsync(user.Id);
 
             if (storedRefreshToken != null)
@@ -59,15 +62,9 @@ namespace BankSimulation.Infrastructure.Services
                 throw new SecurityTokenException("Invalid refresh token.");
             }
 
-            var accessTokenClaims = GetClaimsFromJwt(accessToken);
-            var subClaim = accessTokenClaims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub);
+            var userIdFromAccessToken = GetUserIdFromJwt(accessToken);
 
-            if (subClaim == null || !Guid.TryParse(subClaim.Value, out var userId))
-            {
-                throw new SecurityTokenException("Invalid access token.");
-            }
-
-            var storedRefreshToken = await _userRepository.GetUserRefreshTokenAsync(userId);
+            var storedRefreshToken = await _userRepository.GetUserRefreshTokenAsync(userIdFromAccessToken);
 
             if (storedRefreshToken == null || storedRefreshToken.Token != refreshToken || storedRefreshToken.ExpirationDate <= DateTime.UtcNow)
             {
@@ -116,6 +113,18 @@ namespace BankSimulation.Infrastructure.Services
             {
                 throw new SecurityTokenException("Invalid token.");
             }
+        }
+
+        private Guid GetUserIdFromJwt(string token)
+        {
+            var tokenClaims = GetClaimsFromJwt(token);
+            var subClaim = tokenClaims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub);
+
+            if (subClaim == null || !Guid.TryParse(subClaim.Value, out var userId))
+            {
+                throw new SecurityTokenException("Invalid token.");
+            }
+            return userId;
         }
 
         private async Task<RefreshToken> CreateUserRefreshTokenAsync(Guid userId)

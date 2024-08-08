@@ -64,6 +64,15 @@ namespace BankSimulation.API.Controllers
                 };
                 return NotFound(errorResponse);
             }
+            catch (InvalidOperationException ex)
+            {
+                var errorResponse = new ErrorResponse()
+                {
+                    Title = $"Problem with the user.",
+                    Detail = ex.Message
+                };
+                return BadRequest(errorResponse);
+            }
         }
     }
 }

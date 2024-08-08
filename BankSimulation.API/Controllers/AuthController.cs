@@ -46,6 +46,7 @@ namespace BankSimulation.API.Controllers
         [HttpPost("login")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<AccessTokenDto>> Login(LoginUserDto userToLogin)
         {
@@ -63,6 +64,15 @@ namespace BankSimulation.API.Controllers
                     Detail = ex.Message
                 };
                 return Unauthorized(errorResponse);
+            }
+            catch (UserNotFound ex)
+            {
+                var errorResponse = new ErrorResponse()
+                {
+                    Title = $"Problem with the account.",
+                    Detail = ex.Message
+                };
+                return NotFound(errorResponse);
             }
         }
 

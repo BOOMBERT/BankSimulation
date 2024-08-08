@@ -6,6 +6,7 @@ namespace BankSimulation.Application.Dtos.User
     {
         public Guid Id { get; set; }
         public string Password { get; set; }
+        public bool IsDeleted { get; set; }
         public ICollection<AccessRole> accessRoles { get; set; }
     }
 }

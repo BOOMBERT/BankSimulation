@@ -71,6 +71,7 @@ namespace BankSimulation.Infrastructure.Services
         public async Task<bool> DeleteUserAsync(Guid id)
         {
             var userEntity = await _userRepository.GetUserByIdAsync(id) ?? throw new UserNotFound(id);
+            if (userEntity.IsDeleted) { throw new InvalidOperationException("This user is already deleted."); }
             userEntity.IsDeleted = true;
             return await _userRepository.SaveChangesAsync();
         }
