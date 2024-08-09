@@ -1,6 +1,5 @@
 ﻿using BankSimulation.Application.Dtos.Responses;
 using BankSimulation.Application.Dtos.User;
-using BankSimulation.Application.Exceptions;
 using BankSimulation.Application.Interfaces.Services;
 using BankSimulation.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
@@ -25,54 +24,21 @@ namespace BankSimulation.API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<UserDto>> GetUser(Guid? id, string? email)
         {
-            if (id == null && email == null)
-            {
-                return BadRequest();
-            }
+            if (id == null && email == null) { return BadRequest(); }
 
             var user = await _userService.GetUserAsync(id, email);
-
-            if (user == null)
-            {
-                return NotFound();
-            }
             return Ok(user);
         }
 
         [HttpDelete, Authorize(Roles = nameof(AccessRole.Admin))]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ErrorDetails))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> DeleteUser(Guid? id)
+        public async Task<IActionResult> DeleteUser(Guid id)
         {
-            if (id == null)
-            {
-                return BadRequest();
-            }
-
-            try
-            {
-                await _userService.DeleteUserAsync((Guid)id);
-                return NoContent();
-            }
-            catch (UserNotFound ex)
-            {
-                var errorResponse = new ErrorResponse()
-                {
-                    Title = $"Problem with the user: '{ex.UserId}'",
-                    Detail = ex.Message
-                };
-                return NotFound(errorResponse);
-            }
-            catch (InvalidOperationException ex)
-            {
-                var errorResponse = new ErrorResponse()
-                {
-                    Title = $"Problem with the user.",
-                    Detail = ex.Message
-                };
-                return BadRequest(errorResponse);
-            }
+            await _userService.DeleteUserAsync(id);
+            return NoContent();
         }
     }
 }

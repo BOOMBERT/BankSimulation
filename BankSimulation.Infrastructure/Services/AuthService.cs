@@ -1,7 +1,8 @@
 ﻿using AutoMapper;
 using BankSimulation.Application.Dtos.Auth;
 using BankSimulation.Application.Dtos.User;
-using BankSimulation.Application.Exceptions;
+using BankSimulation.Application.Exceptions.Auth;
+using BankSimulation.Application.Exceptions.User;
 using BankSimulation.Application.Interfaces.Repositories;
 using BankSimulation.Application.Interfaces.Services;
 using BankSimulation.Domain.Entities;
@@ -36,10 +37,10 @@ namespace BankSimulation.Infrastructure.Services
 
             if (user == null || !VerifyUserPassword(userToAuth.Password, user.Password))
             {
-                throw new UnauthorizedAccessException("Invalid credentials.");
+                throw new InvalidCredentialsException();
             }
 
-            if (user.IsDeleted) { throw new UserNotFound(); }
+            if (user.IsDeleted) { throw new UserAlreadyDeletedException(); }
 
             var storedRefreshToken = await _userRepository.GetUserRefreshTokenAsync(user.Id);
 
@@ -57,18 +58,16 @@ namespace BankSimulation.Infrastructure.Services
 
         public async Task<(AccessTokenDto, RefreshTokenDto)> RefreshTokensAsync(string accessToken, string? refreshToken)
         {
-            if (string.IsNullOrEmpty(refreshToken))
-            {
-                throw new SecurityTokenException("Invalid refresh token.");
-            }
+            if (string.IsNullOrEmpty(refreshToken)) { throw new InvalidTokenFormatException(); }
 
-            var userIdFromAccessToken = GetUserIdFromJwt(accessToken);
-
+            var userSubClaim = GetSpecificClaimFromJwt(accessToken, JwtRegisteredClaimNames.Sub);
+            if (!Guid.TryParse(userSubClaim.Value, out var userIdFromAccessToken)) {  throw new InvalidTokenFormatException(); }
+            
             var storedRefreshToken = await _userRepository.GetUserRefreshTokenAsync(userIdFromAccessToken);
 
             if (storedRefreshToken == null || storedRefreshToken.Token != refreshToken || storedRefreshToken.ExpirationDate <= DateTime.UtcNow)
             {
-                throw new SecurityTokenException("Invalid refresh token.");
+                throw new InvalidRefreshTokenException();
             }
 
             _userRepository.DeleteUserRefreshToken(storedRefreshToken);
@@ -82,49 +81,25 @@ namespace BankSimulation.Infrastructure.Services
                 );
         }
 
-        private IEnumerable<Claim> GetClaimsFromJwt(string token)
+        private IEnumerable<Claim> GetAllClaimsFromJwt(string token)
         {
-            var tokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateAudience = false,
-                ValidateIssuer = false,
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtSettings:Key"]!)),
-                ValidateLifetime = false
-            };
             var tokenHandler = new JwtSecurityTokenHandler();
-            SecurityToken securityToken;
+            var jwtSecurityToken = tokenHandler.ReadToken(token) as JwtSecurityToken ?? throw new InvalidTokenFormatException();
 
-            try
-            {
-                tokenHandler.ValidateToken(token, tokenValidationParameters, out securityToken);
-            }
-            catch (Exception)
-            {
-                return Enumerable.Empty<Claim>();
-            }
-
-            if (securityToken is JwtSecurityToken jwtSecurityToken && 
-                jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+            if (jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
             {
                 return jwtSecurityToken.Claims.ToList();
             }
-            else
-            {
-                throw new SecurityTokenException("Invalid token.");
-            }
+            else { throw new InvalidTokenFormatException(); }
         }
 
-        private Guid GetUserIdFromJwt(string token)
+        private Claim GetSpecificClaimFromJwt(string token, string claimName)
         {
-            var tokenClaims = GetClaimsFromJwt(token);
-            var subClaim = tokenClaims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub);
+            var tokenClaims = GetAllClaimsFromJwt(token);
+            var claim = tokenClaims.FirstOrDefault(c => c.Type == claimName);
 
-            if (subClaim == null || !Guid.TryParse(subClaim.Value, out var userId))
-            {
-                throw new SecurityTokenException("Invalid token.");
-            }
-            return userId;
+            if (claim == null) { throw new InvalidTokenFormatException(); }
+            return claim;
         }
 
         private async Task<RefreshToken> CreateUserRefreshTokenAsync(Guid userId)

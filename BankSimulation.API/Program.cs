@@ -1,3 +1,4 @@
+using BankSimulation.API.Middlewares;
 using BankSimulation.Application.Interfaces.Repositories;
 using BankSimulation.Application.Interfaces.Services;
 using BankSimulation.Infrastructure.DbContexts;
@@ -64,6 +65,8 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 
+builder.Services.AddScoped<ErrorHandlingMiddleware>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -71,6 +74,8 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler();
 }
+
+app.UseMiddleware<ErrorHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {

@@ -1,10 +1,10 @@
 ﻿using BankSimulation.Application.Dtos.Auth;
 using BankSimulation.Application.Dtos.Responses;
 using BankSimulation.Application.Dtos.User;
-using BankSimulation.Application.Exceptions;
 using BankSimulation.Application.Interfaces.Services;
+using BankSimulation.Domain.Enums;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
 
 namespace BankSimulation.API.Controllers
 {
@@ -23,82 +23,38 @@ namespace BankSimulation.API.Controllers
 
         [HttpPost("register")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ErrorDetails))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<UserDto>> RegisterUser(CreateUserDto userToCreate)
         {
-            try
-            {
-                var user = await _userService.CreateUserAsync(userToCreate);
-                return CreatedAtAction("GetUser", "Users", new { email = user.Email }, user);
-            }
-            catch (EmailAlreadyExistsException ex)
-            {
-                var errorResponse = new ErrorResponse()
-                {
-                    Title = $"Problem with the email address: '{ex.Email}'",
-                    Detail = ex.Message
-                };
-                return Conflict(errorResponse);
-            }
+            var user = await _userService.CreateUserAsync(userToCreate);
+            return CreatedAtAction("GetUser", "Users", new { email = user.Email }, user);
         }
 
         [HttpPost("login")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ErrorResponse))]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ErrorDetails))]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ErrorDetails))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<AccessTokenDto>> Login(LoginUserDto userToLogin)
         {
-            try
-            {
-                var (accessToken, refreshToken) = await _authService.AuthenticateUserAsync(userToLogin);
-                SetRefreshToken(refreshToken);
-                return Ok(accessToken);
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                var errorResponse = new ErrorResponse()
-                {
-                    Title = $"Problem with the credentials.",
-                    Detail = ex.Message
-                };
-                return Unauthorized(errorResponse);
-            }
-            catch (UserNotFound ex)
-            {
-                var errorResponse = new ErrorResponse()
-                {
-                    Title = $"Problem with the account.",
-                    Detail = ex.Message
-                };
-                return NotFound(errorResponse);
-            }
+            var (accessToken, refreshToken) = await _authService.AuthenticateUserAsync(userToLogin);
+            SetRefreshToken(refreshToken);
+            return Ok(accessToken);
         }
 
-        [HttpPost("refresh")]
+        [HttpPost("refresh"), Authorize(Roles = nameof(AccessRole.Customer))]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ErrorDetails))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<AccessTokenDto>> RefreshTokens(AccessTokenDto accessTokenToRefresh)
+        public async Task<ActionResult<AccessTokenDto>> RefreshTokens()
         {
-            var refreshTokenFromCookie = Request.Cookies["refreshToken"];
+            string accessTokenFromHeader = Request.Headers.Authorization.ToString().Split(' ')[1];
+            string? refreshTokenFromCookie = Request.Cookies["refreshToken"];
 
-            try
-            {
-                var (accessToken, refreshToken) = await _authService.RefreshTokensAsync(accessTokenToRefresh.AccessToken, refreshTokenFromCookie);
-                SetRefreshToken(refreshToken);
-                return Ok(accessToken);
-            }
-            catch (SecurityTokenException ex)
-            {
-                var errorResponse = new ErrorResponse()
-                {
-                    Title = $"Problem with the tokens.",
-                    Detail = ex.Message
-                };
-                return Unauthorized(errorResponse);
-            }
+            var (accessToken, refreshToken) = await _authService.RefreshTokensAsync(accessTokenFromHeader, refreshTokenFromCookie);
+            SetRefreshToken(refreshToken);
+            return Ok(accessToken);
         }
 
         private void SetRefreshToken(RefreshTokenDto refreshToken)
