@@ -4,14 +4,18 @@ using BankSimulation.Application.Interfaces.Services;
 using BankSimulation.Infrastructure.DbContexts;
 using BankSimulation.Infrastructure.Repositories;
 using BankSimulation.Infrastructure.Services;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
+using System.Reflection;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+Assembly applicationAssembly = Assembly.Load("BankSimulation.Application");
 
 // Add services to the container.
 builder.Services.AddAuthentication(x =>
@@ -34,7 +38,11 @@ builder.Services.AddAuthentication(x =>
 
 builder.Services.AddAuthorization();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddFluentValidation(x => 
+    {
+        x.RegisterValidatorsFromAssembly(applicationAssembly);
+    });
 
 builder.Services.AddProblemDetails();
 
@@ -58,7 +66,7 @@ builder.Services.AddDbContext<UsersContext>(options
     => options.UseSqlServer(
         builder.Configuration["ConnectionStrings:BankSimulationConnectionString"]));
 
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.AddAutoMapper(applicationAssembly);
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();

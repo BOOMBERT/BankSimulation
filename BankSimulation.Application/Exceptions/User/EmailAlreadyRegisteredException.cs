@@ -1,6 +1,6 @@
 ﻿namespace BankSimulation.Application.Exceptions.User
 {
-    public class EmailAlreadyRegisteredException : CustomException
+    public sealed class EmailAlreadyRegisteredException : CustomException
     {
         public EmailAlreadyRegisteredException(
             string title = "Email Registration Error",

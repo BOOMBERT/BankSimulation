@@ -51,8 +51,8 @@ namespace BankSimulation.Infrastructure.Services
             var newRefreshToken = await CreateUserRefreshTokenAsync(user.Id);
 
             return (
-                new AccessTokenDto { AccessToken = GenerateAccessToken(newRefreshToken.UserId, user.accessRoles) },
-                new RefreshTokenDto { Token = newRefreshToken.Token, ExpirationDate = newRefreshToken.ExpirationDate }
+                new AccessTokenDto(GenerateAccessToken(newRefreshToken.UserId, user.AccessRoles)),
+                new RefreshTokenDto(newRefreshToken.Token, newRefreshToken.ExpirationDate)
             );
         }
 
@@ -76,8 +76,8 @@ namespace BankSimulation.Infrastructure.Services
             var userRoles = await _userRepository.GetUserAccessRolesAsync(newRefreshToken.UserId) ?? Enumerable.Empty<AccessRole>();
 
             return (
-                new AccessTokenDto { AccessToken = GenerateAccessToken(newRefreshToken.UserId, userRoles) },
-                new RefreshTokenDto { Token = newRefreshToken.Token, ExpirationDate = newRefreshToken.ExpirationDate }
+                new AccessTokenDto (GenerateAccessToken(newRefreshToken.UserId, userRoles)),
+                new RefreshTokenDto (newRefreshToken.Token, newRefreshToken.ExpirationDate)
                 );
         }
 

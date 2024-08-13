@@ -4,7 +4,7 @@ using BankSimulation.Domain.Entities;
 
 namespace BankSimulation.Application.Profiles
 {
-    public class UserProfile : Profile
+    public sealed class UserProfile : Profile
     {
         public UserProfile()
         {

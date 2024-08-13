@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace BankSimulation.API.Middlewares
 {
-    public class ErrorHandlingMiddleware : IMiddleware
+    internal sealed class ErrorHandlingMiddleware : IMiddleware
     {
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
@@ -17,13 +17,12 @@ namespace BankSimulation.API.Middlewares
                 context.Response.StatusCode = customException.StatusCode;
                 context.Response.ContentType = "application/json";
 
-                var problemDetails = new ErrorDetails
-                {
-                    Title = customException.Title,
-                    Status = customException.StatusCode,
-                    Detail = ex.Message,
-                    Instance = context.Request.Path
-                };
+                var problemDetails = new ErrorDetails(
+                    customException.Title,
+                    customException.StatusCode,
+                    ex.Message,
+                    context.Request.Path
+                );
                 var responseJson = JsonSerializer.Serialize(problemDetails);
                 await context.Response.WriteAsync(responseJson);
             }

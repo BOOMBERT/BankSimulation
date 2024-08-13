@@ -1,6 +1,6 @@
 ﻿namespace BankSimulation.Application.Exceptions.Auth
 {
-    public class InvalidCredentialsException : CustomException
+    public sealed class InvalidCredentialsException : CustomException
     {
         public InvalidCredentialsException(
         string title = "Invalid Credentials",

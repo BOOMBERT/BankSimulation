@@ -1,6 +1,6 @@
 ﻿namespace BankSimulation.Application.Exceptions.Auth
 {
-    public class InvalidTokenFormatException : CustomException
+    public sealed class InvalidTokenFormatException : CustomException
     {
         public InvalidTokenFormatException(
             string title = "Invalid Token Format",

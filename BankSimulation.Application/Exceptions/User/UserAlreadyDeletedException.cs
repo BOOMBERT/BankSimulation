@@ -1,6 +1,6 @@
 ﻿namespace BankSimulation.Application.Exceptions.User
 {
-    public class UserAlreadyDeletedException : CustomException
+    public sealed class UserAlreadyDeletedException : CustomException
     {
         public UserAlreadyDeletedException(
             string title = "User Already Deleted",

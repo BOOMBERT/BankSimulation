@@ -1,6 +1,6 @@
 ﻿using BankSimulation.Application.Exceptions;
 
-public class InvalidRefreshTokenException : CustomException
+public sealed class InvalidRefreshTokenException : CustomException
 {
     public InvalidRefreshTokenException(
         string title = "Invalid Refresh Token",

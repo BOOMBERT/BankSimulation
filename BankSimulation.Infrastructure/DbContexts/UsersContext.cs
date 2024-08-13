@@ -1,5 +1,4 @@
 ﻿using BankSimulation.Domain.Entities;
-using BankSimulation.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace BankSimulation.Infrastructure.DbContexts

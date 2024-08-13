@@ -1,12 +1,4 @@
 ﻿namespace BankSimulation.Application.Dtos.User
 {
-    public class UserDto
-    {
-        public Guid Id { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string Email { get; set; }
-        public DateTime CreationDate { get; set; } = DateTime.UtcNow;
-        public bool IsDeleted { get; set; }
-    }
+    public record UserDto(Guid Id, string FirstName, string LastName, string Email, DateTime CreationDate, bool IsDeleted);
 }

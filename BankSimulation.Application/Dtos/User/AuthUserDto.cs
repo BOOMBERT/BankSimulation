@@ -2,11 +2,5 @@
 
 namespace BankSimulation.Application.Dtos.User
 {
-    public class AuthUserDto
-    {
-        public Guid Id { get; set; }
-        public string Password { get; set; }
-        public bool IsDeleted { get; set; }
-        public ICollection<AccessRole> accessRoles { get; set; }
-    }
+    public record AuthUserDto(Guid Id, string Password, bool IsDeleted, ICollection<AccessRole> AccessRoles);
 }

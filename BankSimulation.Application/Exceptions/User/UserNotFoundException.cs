@@ -1,6 +1,6 @@
 ﻿namespace BankSimulation.Application.Exceptions.User
 {
-    public class UserNotFoundException : CustomException
+    public sealed class UserNotFoundException : CustomException
     {
         public UserNotFoundException(
             string title = "User Not Found",
