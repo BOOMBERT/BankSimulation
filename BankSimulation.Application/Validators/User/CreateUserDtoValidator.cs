@@ -9,7 +9,7 @@ namespace BankSimulation.Application.Validators.User
         public CreateUserDtoValidator()
         {
             RuleFor(u => u.FirstName)
-            .IsValidFirstName();
+                .IsValidFirstName();
 
             RuleFor(u => u.LastName)
                 .IsValidLastName();

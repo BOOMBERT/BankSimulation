@@ -1,10 +1,13 @@
-﻿namespace BankSimulation.Application.Exceptions.Auth
+﻿using Microsoft.AspNetCore.Http;
+
+namespace BankSimulation.Application.Exceptions.Auth
 {
     public sealed class InvalidTokenFormatException : CustomException
     {
         public InvalidTokenFormatException(
+            string errorContext,
             string title = "Invalid Token Format",
-            string message = "The provided token format is invalid.")
-            : base(message, title, 400) { }
+            string details = "The provided token format is invalid.")
+            : base(title, StatusCodes.Status400BadRequest, details, errorContext) { }
     }
 }

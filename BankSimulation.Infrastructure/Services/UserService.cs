@@ -23,7 +23,7 @@ namespace BankSimulation.Infrastructure.Services
         {
             if (await _userRepository.EmailAlreadyExistsAsync(user.Email))
             {
-                throw new EmailAlreadyRegisteredException();
+                throw new EmailAlreadyRegisteredException(user.Email);
             }
 
             var userEntity = _mapper.Map<User>(user);
@@ -38,6 +38,8 @@ namespace BankSimulation.Infrastructure.Services
 
         public async Task<UserDto> GetUserAsync(Guid? id = null, string? email = null)
         {
+            if (id == null && email == null) { throw new ArgumentNullException(); }
+
             User? userEntity = null;
 
             if (id != null)
@@ -51,7 +53,8 @@ namespace BankSimulation.Infrastructure.Services
 
             if (userEntity == null)
             {
-                throw new UserNotFoundException();
+                if (id != null) { throw new UserNotFoundException(id.ToString()!); }
+                if (email != null) { throw new UserNotFoundException(email); }
             }
             return _mapper.Map<UserDto>(userEntity);
         }
@@ -66,8 +69,8 @@ namespace BankSimulation.Infrastructure.Services
 
         public async Task<bool> DeleteUserAsync(Guid id)
         {
-            var userEntity = await _userRepository.GetUserByIdAsync(id) ?? throw new UserNotFoundException();
-            if (userEntity.IsDeleted) { throw new UserAlreadyDeletedException(); }
+            var userEntity = await _userRepository.GetUserByIdAsync(id) ?? throw new UserNotFoundException(id.ToString());
+            if (userEntity.IsDeleted) { throw new UserAlreadyDeletedException(id.ToString()); }
             userEntity.IsDeleted = true;
             return await _userRepository.SaveChangesAsync();
         }

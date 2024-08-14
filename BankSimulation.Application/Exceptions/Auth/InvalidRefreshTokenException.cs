@@ -1,9 +1,13 @@
-﻿using BankSimulation.Application.Exceptions;
+﻿using Microsoft.AspNetCore.Http;
 
-public sealed class InvalidRefreshTokenException : CustomException
+namespace BankSimulation.Application.Exceptions.Auth
 {
-    public InvalidRefreshTokenException(
-        string title = "Invalid Refresh Token",
-        string message = "The refresh token provided is invalid.")
-        : base(message, title, 401) { }
+    public sealed class InvalidRefreshTokenException : CustomException
+    {
+        public InvalidRefreshTokenException(
+            string errorContext,
+            string title = "Invalid Refresh Token",
+            string details = "The refresh token provided is invalid.")
+            : base(title, StatusCodes.Status401Unauthorized, details, errorContext) { }
+    }
 }

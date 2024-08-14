@@ -1,4 +1,6 @@
 using BankSimulation.API.Middlewares;
+using BankSimulation.Application.Exceptions;
+using BankSimulation.Application.Exceptions.Auth;
 using BankSimulation.Application.Interfaces.Repositories;
 using BankSimulation.Application.Interfaces.Services;
 using BankSimulation.Infrastructure.DbContexts;
@@ -9,6 +11,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
 using Swashbuckle.AspNetCore.Filters;
 using System.Reflection;
 using System.Text;
@@ -16,6 +19,19 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 Assembly applicationAssembly = Assembly.Load("BankSimulation.Application");
+
+if (builder.Environment.IsDevelopment())
+{
+    builder.Configuration.AddJsonFile("appsettings.Development.json", optional: false);
+}
+else
+{
+    builder.Configuration.AddJsonFile("appsettings.json", optional: false);
+}
+
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .CreateLogger();
 
 // Add services to the container.
 builder.Services.AddAuthentication(x =>
@@ -34,17 +50,37 @@ builder.Services.AddAuthentication(x =>
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true
     };
+
+    x.Events = new JwtBearerEvents
+    {
+        OnAuthenticationFailed = context =>
+        {
+            throw new InvalidTokenFormatException(context.Request.Headers.Authorization.ToString().Split()[1]);
+        }
+    };
 });
 
 builder.Services.AddAuthorization();
 
 builder.Services.AddControllers()
-    .AddFluentValidation(x => 
+    .AddFluentValidation(x =>
     {
         x.RegisterValidatorsFromAssembly(applicationAssembly);
+    })
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            var errors = context.ModelState
+                .Where(ms => ms.Value!.Errors.Count > 0)
+                .ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                );
+            
+            throw new ValidationErrorException(errors);
+        };
     });
-
-builder.Services.AddProblemDetails();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -78,11 +114,6 @@ builder.Services.AddScoped<ErrorHandlingMiddleware>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler();
-}
-
 app.UseMiddleware<ErrorHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
