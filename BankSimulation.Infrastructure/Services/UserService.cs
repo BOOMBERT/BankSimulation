@@ -36,35 +36,22 @@ namespace BankSimulation.Infrastructure.Services
             return _mapper.Map<UserDto>(userEntity);
         }
 
-        public async Task<UserDto> GetUserAsync(Guid? id = null, string? email = null)
+        public async Task<UserDto> GetUserByIdAsync(Guid id)
         {
-            if (id == null && email == null) { throw new ArgumentNullException(); }
+            var userEntity = await _userRepository.GetUserByIdAsync(id);
+            return userEntity == null ? throw new UserNotFoundException(id.ToString()) : _mapper.Map<UserDto>(userEntity);
+        }
 
-            User? userEntity = null;
-
-            if (id != null)
-            {
-                userEntity = await _userRepository.GetUserByIdAsync((Guid)id);
-            }
-            else if (email != null)
-            {
-                userEntity = await _userRepository.GetUserByEmailAsync(email);
-            }
-
-            if (userEntity == null)
-            {
-                if (id != null) { throw new UserNotFoundException(id.ToString()!); }
-                if (email != null) { throw new UserNotFoundException(email); }
-            }
-            return _mapper.Map<UserDto>(userEntity);
+        public async Task<UserDto> GetUserByEmailAsync(string email)
+        {
+            var userEntity = await _userRepository.GetUserByEmailAsync(email);
+            return userEntity == null ? throw new UserNotFoundException(email) : _mapper.Map<UserDto>(userEntity);
         }
 
         public async Task<AuthUserDto?> GetUserAuthDataAsync(string email)
         {
             var userEntity = await _userRepository.GetUserByEmailAsync(email);
-            if (userEntity == null) { return null; }
-
-            return _mapper.Map<AuthUserDto>(userEntity);
+            return userEntity == null ? null : _mapper.Map<AuthUserDto>(userEntity);
         }
 
         public async Task<bool> DeleteUserAsync(Guid id)

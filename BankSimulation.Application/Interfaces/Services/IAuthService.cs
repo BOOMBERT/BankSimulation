@@ -1,11 +1,15 @@
-﻿using BankSimulation.Application.Dtos.Auth;
-using BankSimulation.Application.Dtos.User;
+﻿using BankSimulation.Domain.Entities;
+using BankSimulation.Domain.Enums;
+using System.Security.Claims;
 
 namespace BankSimulation.Application.Interfaces.Services
 {
     public interface IAuthService
     {
-        Task<(AccessTokenDto, RefreshTokenDto)> AuthenticateUserAsync(LoginUserDto userToAuth);
-        Task<(AccessTokenDto, RefreshTokenDto)> RefreshTokensAsync(string accessToken, string? refreshToken);
+        IEnumerable<Claim> GetAllClaimsFromJwt(string token);
+        Claim GetSpecificClaimFromJwt(string token, string claimName);
+        string GenerateAccessToken(Guid userId, IEnumerable<AccessRole> userAccessRoles);
+        RefreshToken GenerateRefreshToken();
+        bool VerifyUserPassword(string plainPassword, string passwordHash);
     }
 }

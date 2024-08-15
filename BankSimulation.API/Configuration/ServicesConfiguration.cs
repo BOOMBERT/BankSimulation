@@ -44,6 +44,8 @@ namespace BankSimulation.API.Configuration
             services.AddScoped<IUserRepository, UserRepository>();
 
             services.AddScoped<IAuthService, AuthService>();
+            
+            services.AddScoped<IUserAuthService, UserAuthService>();
         }
     }
 }

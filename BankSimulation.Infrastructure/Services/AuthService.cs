@@ -1,9 +1,4 @@
-﻿using AutoMapper;
-using BankSimulation.Application.Dtos.Auth;
-using BankSimulation.Application.Dtos.User;
-using BankSimulation.Application.Exceptions.Auth;
-using BankSimulation.Application.Exceptions.User;
-using BankSimulation.Application.Interfaces.Repositories;
+﻿using BankSimulation.Application.Exceptions.Auth;
 using BankSimulation.Application.Interfaces.Services;
 using BankSimulation.Domain.Entities;
 using BankSimulation.Domain.Enums;
@@ -19,69 +14,13 @@ namespace BankSimulation.Infrastructure.Services
     public class AuthService : IAuthService
     {
         private readonly IConfiguration _configuration;
-        private readonly IMapper _mapper;
-        private readonly IUserService _userService;
-        private readonly IUserRepository _userRepository;
 
-        public AuthService(IConfiguration configuration, IMapper mapper, IUserService userService, IUserRepository userRepository)
+        public AuthService(IConfiguration configuration)
         {
-             _configuration = configuration ?? throw new ArgumentNullException(nameof(mapper));
-            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
-            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
-        public async Task<(AccessTokenDto, RefreshTokenDto)> AuthenticateUserAsync(LoginUserDto userToAuth)
-        {
-            var user = await _userService.GetUserAuthDataAsync(userToAuth.Email);
-
-            if (user == null || !VerifyUserPassword(userToAuth.Password, user.Password))
-            {
-                throw new InvalidCredentialsException(userToAuth.Email);
-            }
-
-            if (user.IsDeleted) { throw new UserAlreadyDeletedException(user.Id.ToString()); }
-
-            var storedRefreshToken = await _userRepository.GetUserRefreshTokenAsync(user.Id);
-
-            if (storedRefreshToken != null)
-            {
-                _userRepository.DeleteUserRefreshToken(storedRefreshToken);
-            }
-            var newRefreshToken = await CreateUserRefreshTokenAsync(user.Id);
-
-            return (
-                new AccessTokenDto(GenerateAccessToken(newRefreshToken.UserId, user.AccessRoles)),
-                new RefreshTokenDto(newRefreshToken.Token, newRefreshToken.ExpirationDate)
-            );
-        }
-
-        public async Task<(AccessTokenDto, RefreshTokenDto)> RefreshTokensAsync(string accessToken, string? refreshToken)
-        {
-            if (string.IsNullOrEmpty(refreshToken)) { throw new InvalidTokenFormatException(refreshToken); }
-
-            var userSubClaim = GetSpecificClaimFromJwt(accessToken, JwtRegisteredClaimNames.Sub);
-            if (!Guid.TryParse(userSubClaim.Value, out var userIdFromAccessToken)) { throw new InvalidTokenFormatException(accessToken); }
-            
-            var storedRefreshToken = await _userRepository.GetUserRefreshTokenAsync(userIdFromAccessToken);
-
-            if (storedRefreshToken == null || storedRefreshToken.Token != refreshToken || storedRefreshToken.ExpirationDate <= DateTime.UtcNow)
-            {
-                throw new InvalidRefreshTokenException(refreshToken);
-            }
-
-            _userRepository.DeleteUserRefreshToken(storedRefreshToken);
-            var newRefreshToken = await CreateUserRefreshTokenAsync(storedRefreshToken.UserId);
-
-            var userRoles = await _userRepository.GetUserAccessRolesAsync(newRefreshToken.UserId) ?? Enumerable.Empty<AccessRole>();
-
-            return (
-                new AccessTokenDto (GenerateAccessToken(newRefreshToken.UserId, userRoles)),
-                new RefreshTokenDto (newRefreshToken.Token, newRefreshToken.ExpirationDate)
-                );
-        }
-
-        private IEnumerable<Claim> GetAllClaimsFromJwt(string token)
+        public IEnumerable<Claim> GetAllClaimsFromJwt(string token)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var jwtSecurityToken = tokenHandler.ReadToken(token) as JwtSecurityToken ?? throw new InvalidTokenFormatException(token);
@@ -93,7 +32,7 @@ namespace BankSimulation.Infrastructure.Services
             else { throw new InvalidTokenFormatException(token); }
         }
 
-        private Claim GetSpecificClaimFromJwt(string token, string claimName)
+        public Claim GetSpecificClaimFromJwt(string token, string claimName)
         {
             var tokenClaims = GetAllClaimsFromJwt(token);
             var claim = tokenClaims.FirstOrDefault(c => c.Type == claimName);
@@ -102,18 +41,7 @@ namespace BankSimulation.Infrastructure.Services
             return claim;
         }
 
-        private async Task<RefreshToken> CreateUserRefreshTokenAsync(Guid userId)
-        {
-            var refreshToken = GenerateRefreshToken();
-            refreshToken.UserId = userId;
-
-            await _userRepository.AddUserRefreshTokenAsync(refreshToken);
-            await _userRepository.SaveChangesAsync();
-
-            return refreshToken;
-        }
-
-        private string GenerateAccessToken(Guid userId, IEnumerable<AccessRole> userAccessRoles)
+        public string GenerateAccessToken(Guid userId, IEnumerable<AccessRole> userAccessRoles)
         {
             var claims = new List<Claim>
             {
@@ -146,7 +74,7 @@ namespace BankSimulation.Infrastructure.Services
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        private RefreshToken GenerateRefreshToken()
+        public RefreshToken GenerateRefreshToken()
         {
             if (!int.TryParse(_configuration["JwtSettings:RefreshToken:ExpirationInDays"], out var expiresInDays))
             {
@@ -164,7 +92,7 @@ namespace BankSimulation.Infrastructure.Services
             return refreshToken;
         }
 
-        private bool VerifyUserPassword(string plainPassword, string passwordHash)
+        public bool VerifyUserPassword(string plainPassword, string passwordHash)
         {
             return BCrypt.Net.BCrypt.Verify(plainPassword, passwordHash);
         }

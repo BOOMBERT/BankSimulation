@@ -13,22 +13,22 @@ namespace BankSimulation.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IUserService _userService;
-        private readonly IAuthService _authService;
+        private readonly IUserAuthService _userAuthService;
 
-        public AuthController(IUserService userService, IAuthService authService)
+        public AuthController(IUserService userService, IUserAuthService userAuthService)
         {
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
-            _authService = authService ?? throw new ArgumentNullException(nameof(authService));
+            _userAuthService = userAuthService ?? throw new ArgumentNullException(nameof(userAuthService));
         }
 
-        [HttpPost("register")]
+        [HttpPost("register"), Authorize(Roles = nameof(AccessRole.Admin))]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ErrorDetails))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<UserDto>> RegisterUser(CreateUserDto userToCreate)
         {
             var user = await _userService.CreateUserAsync(userToCreate);
-            return CreatedAtAction("GetUser", "Users", new { email = user.Email }, user);
+            return CreatedAtAction("GetUserById", "Users", new { email = user.Email }, user);
         }
 
         [HttpPost("login")]
@@ -38,7 +38,7 @@ namespace BankSimulation.API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<AccessTokenDto>> Login(LoginUserDto userToLogin)
         {
-            var (accessToken, refreshToken) = await _authService.AuthenticateUserAsync(userToLogin);
+            var (accessToken, refreshToken) = await _userAuthService.AuthenticateUserAsync(userToLogin);
             SetRefreshToken(refreshToken);
             return Ok(accessToken);
         }
@@ -52,7 +52,7 @@ namespace BankSimulation.API.Controllers
             string accessTokenFromHeader = Request.Headers.Authorization.ToString().Split(' ')[1];
             string? refreshTokenFromCookie = Request.Cookies["refreshToken"];
 
-            var (accessToken, refreshToken) = await _authService.RefreshTokensAsync(accessTokenFromHeader, refreshTokenFromCookie);
+            var (accessToken, refreshToken) = await _userAuthService.RefreshUserTokensAsync(accessTokenFromHeader, refreshTokenFromCookie);
             SetRefreshToken(refreshToken);
             return Ok(accessToken);
         }
