@@ -1,4 +1,8 @@
-﻿using BankSimulation.Application.Interfaces.Repositories;
+﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using BankSimulation.Application.Dtos.Auth;
+using BankSimulation.Application.Dtos.User;
+using BankSimulation.Application.Interfaces.Repositories;
 using BankSimulation.Domain.Entities;
 using BankSimulation.Domain.Enums;
 using BankSimulation.Infrastructure.DbContexts;
@@ -9,10 +13,12 @@ namespace BankSimulation.Infrastructure.Repositories
     public class UserRepository : IUserRepository
     {
         private readonly UsersContext _context;
+        private readonly IMapper _mapper;
 
-        public UserRepository(UsersContext context)
+        public UserRepository(UsersContext context, IMapper mapper)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
         public async Task AddUserAsync(User user)
@@ -22,17 +28,32 @@ namespace BankSimulation.Infrastructure.Repositories
 
         public async Task<User?> GetUserByIdAsync(Guid id)
         {
-            return await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+            return await _context.Users
+                .AsNoTracking()
+                .SingleOrDefaultAsync(u => u.Id == id);
         }
 
         public async Task<User?> GetUserByEmailAsync(string email)
         {
-            return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            return await _context.Users
+                .AsNoTracking()
+                .SingleOrDefaultAsync(u => u.Email == email);
         }
 
         public async Task<bool> EmailAlreadyExistsAsync(string email)
         {
-            return await _context.Users.AnyAsync(u => u.Email == email);
+            return await _context.Users
+                .AsNoTracking()
+                .AnyAsync(u => u.Email == email);
+        }
+
+        public async Task<AuthUserDto?> GetUserAuthDataAsync(string email)
+        {
+            return await _context.Users
+                .AsNoTracking()
+                .Where(u => u.Email == email)
+                .ProjectTo<AuthUserDto>(_mapper.ConfigurationProvider)
+                .SingleOrDefaultAsync();
         }
 
         public async Task AddUserRefreshTokenAsync(RefreshToken refreshToken)
@@ -40,19 +61,26 @@ namespace BankSimulation.Infrastructure.Repositories
             await _context.RefreshTokens.AddAsync(refreshToken);
         }
 
-        public async Task<RefreshToken?> GetUserRefreshTokenAsync(Guid userId)
+        public async Task<RefreshTokenDto?> GetRefreshTokenByUserIdAsync(Guid userId)
         {
-            return await _context.RefreshTokens.SingleOrDefaultAsync(rt => rt.UserId == userId);
+            return await _context.RefreshTokens
+                .AsNoTracking()
+                .Where(rt => rt.UserId == userId)
+                .Select(rt => new RefreshTokenDto(rt.Token, rt.ExpirationDate))
+                .SingleOrDefaultAsync();
         }
-
-        public void DeleteUserRefreshToken(RefreshToken refreshToken)
+    
+        public async Task DeleteRefreshTokenByUserIdAsync(Guid userId)
         {
-            _context.RefreshTokens.Remove(refreshToken);
+            await _context.RefreshTokens
+                .Where(rt => rt.UserId == userId)
+                .ExecuteDeleteAsync();
         }
 
         public async Task<IList<AccessRole>?> GetUserAccessRolesAsync(Guid userId)
         {
             return await _context.Users
+                .AsNoTracking()
                 .Where(u => u.Id == userId)
                 .Select(u => u.AccessRoles)
                 .SingleOrDefaultAsync();

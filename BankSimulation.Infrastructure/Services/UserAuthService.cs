@@ -25,7 +25,7 @@ namespace BankSimulation.Infrastructure.Services
 
         public async Task<(AccessTokenDto, RefreshTokenDto)> AuthenticateUserAsync(LoginUserDto userToAuth)
         {
-            var user = await _userService.GetUserAuthDataAsync(userToAuth.Email);
+            var user = await _userRepository.GetUserAuthDataAsync(userToAuth.Email);
 
             if (user == null || !_authService.VerifyUserPassword(userToAuth.Password, user.Password))
             {
@@ -34,11 +34,11 @@ namespace BankSimulation.Infrastructure.Services
 
             if (user.IsDeleted) { throw new UserAlreadyDeletedException(user.Id.ToString()); }
 
-            var storedRefreshToken = await _userRepository.GetUserRefreshTokenAsync(user.Id);
+            var storedRefreshToken = await _userRepository.GetRefreshTokenByUserIdAsync(user.Id);
 
             if (storedRefreshToken != null)
             {
-                _userRepository.DeleteUserRefreshToken(storedRefreshToken);
+                await _userRepository.DeleteRefreshTokenByUserIdAsync(user.Id);
             }
             var newRefreshToken = await CreateUserRefreshTokenAsync(user.Id);
 
@@ -53,15 +53,15 @@ namespace BankSimulation.Infrastructure.Services
             if (string.IsNullOrEmpty(refreshToken)) { throw new InvalidTokenFormatException(refreshToken); }
 
             var userIdFromAccessToken = GetUserIdFromJwt(accessToken);
-            var storedRefreshToken = await _userRepository.GetUserRefreshTokenAsync(userIdFromAccessToken);
+            var storedRefreshToken = await _userRepository.GetRefreshTokenByUserIdAsync(userIdFromAccessToken);
 
             if (storedRefreshToken == null || storedRefreshToken.Token != refreshToken || storedRefreshToken.ExpirationDate <= DateTime.UtcNow)
             {
                 throw new InvalidRefreshTokenException(refreshToken);
             }
 
-            _userRepository.DeleteUserRefreshToken(storedRefreshToken);
-            var newRefreshToken = await CreateUserRefreshTokenAsync(storedRefreshToken.UserId);
+            await _userRepository.DeleteRefreshTokenByUserIdAsync(userIdFromAccessToken);
+            var newRefreshToken = await CreateUserRefreshTokenAsync(userIdFromAccessToken);
 
             var userRoles = await _userRepository.GetUserAccessRolesAsync(newRefreshToken.UserId) ?? Enumerable.Empty<AccessRole>();
 

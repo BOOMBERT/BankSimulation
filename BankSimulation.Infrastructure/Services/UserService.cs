@@ -48,12 +48,6 @@ namespace BankSimulation.Infrastructure.Services
             return userEntity == null ? throw new UserNotFoundException(email) : _mapper.Map<UserDto>(userEntity);
         }
 
-        public async Task<AuthUserDto?> GetUserAuthDataAsync(string email)
-        {
-            var userEntity = await _userRepository.GetUserByEmailAsync(email);
-            return userEntity == null ? null : _mapper.Map<AuthUserDto>(userEntity);
-        }
-
         public async Task<bool> DeleteUserAsync(Guid id)
         {
             var userEntity = await _userRepository.GetUserByIdAsync(id) ?? throw new UserNotFoundException(id.ToString());
