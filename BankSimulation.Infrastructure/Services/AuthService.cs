@@ -91,10 +91,5 @@ namespace BankSimulation.Infrastructure.Services
 
             return refreshToken;
         }
-
-        public bool VerifyUserPassword(string plainPassword, string passwordHash)
-        {
-            return BCrypt.Net.BCrypt.Verify(plainPassword, passwordHash);
-        }
     }
 }

@@ -12,13 +12,11 @@ namespace BankSimulation.Infrastructure.Services
 {
     public class UserAuthService : IUserAuthService
     {
-        private readonly IUserService _userService;
         private readonly IUserRepository _userRepository;
         private readonly IAuthService _authService;
 
-        public UserAuthService(IUserService userService, IUserRepository userRepository, IAuthService authService)
+        public UserAuthService(IUserRepository userRepository, IAuthService authService)
         {
-            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _authService = authService ?? throw new ArgumentNullException(nameof(authService));
         }
@@ -27,7 +25,7 @@ namespace BankSimulation.Infrastructure.Services
         {
             var user = await _userRepository.GetUserAuthDataAsync(userToAuth.Email);
 
-            if (user == null || !_authService.VerifyUserPassword(userToAuth.Password, user.Password))
+            if (user == null || !VerifyUserPassword(userToAuth.Password, user.Password))
             {
                 throw new InvalidCredentialsException(userToAuth.Email);
             }
@@ -71,10 +69,16 @@ namespace BankSimulation.Infrastructure.Services
                 );
         }
 
-        public async Task<UserDto> GetUserFromJwtAsync(string token)
+        public async Task<User> GetUserEntityFromJwtAsync(string token)
         {
             var userIdFromToken = GetUserIdFromJwt(token);
-            return await _userService.GetUserByIdAsync(userIdFromToken);
+            var userEntity = await _userRepository.GetUserByIdAsync(userIdFromToken);
+            return userEntity ?? throw new UserNotFoundException(userIdFromToken.ToString());
+        }
+
+        public bool VerifyUserPassword(string plainPassword, string passwordHash)
+        {
+            return BCrypt.Net.BCrypt.Verify(plainPassword, passwordHash);
         }
 
         private Guid GetUserIdFromJwt(string token)

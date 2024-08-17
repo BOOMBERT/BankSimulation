@@ -8,17 +8,11 @@ namespace BankSimulation.Application.Validators.User
     {
         public UpdateUserDtoValidator()
         {
-            RuleFor(u => u.FirstName)
-                .IsValidFirstName();
-
-            RuleFor(u => u.LastName)
-                .IsValidLastName();
-
             RuleFor(u => u.Email)
                 .IsValidEmail();
 
             RuleFor(u => u.Password)
-                .IsValidPassword();
+                .IsValidPassword();   
         }
     }
 }

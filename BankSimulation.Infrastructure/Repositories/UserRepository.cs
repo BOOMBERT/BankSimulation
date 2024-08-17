@@ -86,6 +86,11 @@ namespace BankSimulation.Infrastructure.Repositories
                 .SingleOrDefaultAsync();
         }
 
+        public void UpdateUser(User user)
+        {
+            _context.Users.Update(user);
+        }
+        
         public async Task<bool> SaveChangesAsync()
         {
             return (await _context.SaveChangesAsync() >= 0);

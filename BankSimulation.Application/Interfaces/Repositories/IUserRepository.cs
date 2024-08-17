@@ -16,6 +16,7 @@ namespace BankSimulation.Application.Interfaces.Repositories
         Task<RefreshTokenDto?> GetRefreshTokenByUserIdAsync(Guid userId);
         Task DeleteRefreshTokenByUserIdAsync(Guid userId);
         Task<IList<AccessRole>?> GetUserAccessRolesAsync(Guid userId);
+        void UpdateUser(User user);
         Task<bool> SaveChangesAsync();
     }
 }

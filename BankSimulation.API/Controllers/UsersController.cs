@@ -56,7 +56,18 @@ namespace BankSimulation.API.Controllers
         public async Task<ActionResult<UserDto>> GetMe()
         {
             string accessTokenFromHeader = Request.Headers.Authorization.ToString().Split(' ')[1];
-            return Ok(await _userAuthService.GetUserFromJwtAsync(accessTokenFromHeader));
+            return Ok(await _userService.GetUserViaAccessTokenAsync(accessTokenFromHeader));
+        }
+
+        [HttpPatch("change-password"), Authorize(Roles = nameof(AccessRole.Customer))]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ErrorDetails))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorDetails))]
+        public async Task<IActionResult> ChangePassword(ChangePasswordDto changePasswordDto)
+        {
+            string accessTokenFromHeader = Request.Headers.Authorization.ToString().Split(' ')[1];
+            return Ok(await _userService.UpdateUserPasswordAsync(
+                accessTokenFromHeader, changePasswordDto.CurrentPassword, changePasswordDto.NewPassword));
         }
     }
 }

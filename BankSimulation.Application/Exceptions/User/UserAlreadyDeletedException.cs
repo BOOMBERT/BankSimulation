@@ -9,6 +9,5 @@ namespace BankSimulation.Application.Exceptions.User
             string title = "User Already Deleted",
             string details = "The specified user has already been deleted.")
             : base(title, StatusCodes.Status409Conflict, details, errorContext) { }
-
     }
 }
