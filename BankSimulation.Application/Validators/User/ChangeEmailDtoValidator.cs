@@ -4,15 +4,15 @@ using FluentValidation;
 
 namespace BankSimulation.Application.Validators.User
 {
-    public sealed class UpdateUserDtoValidator : AbstractValidator<UpdateUserDto>
+    public sealed class ChangeEmailDtoValidator : AbstractValidator<ChangeEmailDto>
     {
-        public UpdateUserDtoValidator()
+        public ChangeEmailDtoValidator()
         {
-            RuleFor(u => u.Email)
+            RuleFor(u => u.CurrentEmail)
                 .IsValidEmail();
 
-            RuleFor(u => u.Password)
-                .IsValidPassword();   
+            RuleFor(u => u.NewEmail)
+                .IsValidEmail();
         }
     }
 }

@@ -1,10 +1,8 @@
 ﻿using AutoMapper;
 using BankSimulation.Application.Dtos.User;
-using BankSimulation.Application.Exceptions;
 using BankSimulation.Application.Exceptions.User;
 using BankSimulation.Application.Interfaces.Repositories;
 using BankSimulation.Application.Interfaces.Services;
-using BankSimulation.Application.Validators.User;
 using BankSimulation.Domain.Entities;
 using BankSimulation.Domain.Enums;
 
@@ -76,23 +74,32 @@ namespace BankSimulation.Infrastructure.Services
                 throw new IncorrectCurrentPasswordException(userEntity.Id.ToString());
             }
 
-            var updateUserDto = new UpdateUserDto(userEntity.Email, newPassword);
-            var validator = new UpdateUserDtoValidator();
-            var validationResult = validator.Validate(updateUserDto);
+            userEntity.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            _userRepository.UpdateUser(userEntity);
 
-            if (!validationResult.IsValid) 
+            return await _userRepository.SaveChangesAsync();
+        }
+
+        public async Task<bool> UpdateUserEmailAsync(string accessToken, string currentEmail, string newEmail)
+        {
+            if (currentEmail == newEmail) 
             {
-                var errors = validationResult.Errors
-                    .GroupBy(e => e.PropertyName)
-                    .ToDictionary(
-                        g => g.Key,
-                        g => g.Select(e => e.ErrorMessage).ToArray()
-                        );
-                
-                throw new ValidationErrorException(errors); 
+                throw new IncorrectNewEmailException(newEmail); 
             }
 
-            userEntity.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            if (await _userRepository.EmailAlreadyExistsAsync(newEmail))
+            {
+                throw new EmailAlreadyRegisteredException(newEmail);
+            }
+
+            var userEntity = await _userAuthService.GetUserEntityFromJwtAsync(accessToken);
+
+            if (currentEmail != userEntity.Email)
+            {
+                throw new IncorrectCurrentEmailException(currentEmail);
+            }
+
+            userEntity.Email = newEmail;
             _userRepository.UpdateUser(userEntity);
 
             return await _userRepository.SaveChangesAsync();

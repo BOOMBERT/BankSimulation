@@ -6,7 +6,7 @@ namespace BankSimulation.Application.Exceptions.User
     {
         public EmailAlreadyRegisteredException(
             string errorContext,
-            string title = "Email Registration Error",
+            string title = "Incorrect Email",
             string details = "This email address is already registered.")
             : base(title, StatusCodes.Status409Conflict, details, errorContext) { }
     }

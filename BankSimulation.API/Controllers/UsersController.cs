@@ -63,11 +63,23 @@ namespace BankSimulation.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ErrorDetails))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorDetails))]
-        public async Task<IActionResult> ChangePassword(ChangePasswordDto changePasswordDto)
+        public async Task<ActionResult<bool>> ChangePassword(ChangePasswordDto changePasswordDto)
         {
             string accessTokenFromHeader = Request.Headers.Authorization.ToString().Split(' ')[1];
             return Ok(await _userService.UpdateUserPasswordAsync(
                 accessTokenFromHeader, changePasswordDto.CurrentPassword, changePasswordDto.NewPassword));
+        }
+
+        [HttpPatch("change-email"), Authorize(Roles = nameof(AccessRole.Customer))]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ErrorDetails))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ErrorDetails))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorDetails))]
+        public async Task<ActionResult<bool>> ChangeEmail(ChangeEmailDto changeEmailDto)
+        {
+            string accessTokenFromHeader = Request.Headers.Authorization.ToString().Split(' ')[1];
+            return Ok(await _userService.UpdateUserEmailAsync(
+                accessTokenFromHeader, changeEmailDto.CurrentEmail, changeEmailDto.NewEmail));
         }
     }
 }
