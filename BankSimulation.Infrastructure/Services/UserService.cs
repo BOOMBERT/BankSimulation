@@ -38,26 +38,6 @@ namespace BankSimulation.Infrastructure.Services
             return _mapper.Map<UserDto>(userEntity);
         }
 
-        public async Task<UserDto> GetUserByIdAsync(Guid id)
-        {
-            var userEntity = await _userRepository.GetUserByIdAsync(id);
-            return userEntity == null ? throw new UserNotFoundException(id.ToString()) : _mapper.Map<UserDto>(userEntity);
-        }
-
-        public async Task<UserDto> GetUserByEmailAsync(string email)
-        {
-            var userEntity = await _userRepository.GetUserByEmailAsync(email);
-            return userEntity == null ? throw new UserNotFoundException(email) : _mapper.Map<UserDto>(userEntity);
-        }
-
-        public async Task<bool> DeleteUserAsync(Guid id)
-        {
-            var userEntity = await _userRepository.GetUserByIdAsync(id) ?? throw new UserNotFoundException(id.ToString());
-            if (userEntity.IsDeleted) { throw new UserAlreadyDeletedException(id.ToString()); }
-            userEntity.IsDeleted = true;
-            return await _userRepository.SaveChangesAsync();
-        }
-
         public async Task<UserDto> GetUserViaAccessTokenAsync(string accessToken)
         {
             return _mapper.Map<UserDto>(await _userAuthService.GetUserEntityFromJwtAsync(accessToken));

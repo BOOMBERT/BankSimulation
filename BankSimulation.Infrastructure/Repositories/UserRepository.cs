@@ -29,7 +29,6 @@ namespace BankSimulation.Infrastructure.Repositories
         public async Task<User?> GetUserByIdAsync(Guid id)
         {
             return await _context.Users
-                .AsNoTracking()
                 .SingleOrDefaultAsync(u => u.Id == id);
         }
 

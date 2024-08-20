@@ -16,6 +16,7 @@ namespace BankSimulation.API.Configuration
             Assembly applicationAssembly = Assembly.Load("BankSimulation.Application");
 
             services.AddControllers()
+                .AddNewtonsoftJson()
                 .AddFluentValidation(x =>
                 {
                     x.RegisterValidatorsFromAssembly(applicationAssembly);
@@ -46,6 +47,8 @@ namespace BankSimulation.API.Configuration
             services.AddScoped<IAuthService, AuthService>();
             
             services.AddScoped<IUserAuthService, UserAuthService>();
+
+            services.AddScoped<IAdminUserService, AdminUserService>();
         }
     }
 }

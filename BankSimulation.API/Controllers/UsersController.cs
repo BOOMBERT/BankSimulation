@@ -20,35 +20,6 @@ namespace BankSimulation.API.Controllers
             _userAuthService = userAuthService ?? throw new ArgumentNullException(nameof(userAuthService));
         }
 
-        [HttpGet("by-id"), Authorize(Roles = nameof(AccessRole.Admin))]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<UserDto>> GetUserById(Guid id)
-        {
-            return Ok(await _userService.GetUserByIdAsync(id));
-        }
-
-        [HttpGet("by-email"), Authorize(Roles = nameof(AccessRole.Admin))]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<UserDto>> GetUserByEmail(string email)
-        {
-            return Ok(await _userService.GetUserByEmailAsync(email));
-        }
-
-        [HttpDelete, Authorize(Roles = nameof(AccessRole.Admin))]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ErrorDetails))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> DeleteUser(Guid id)
-        {
-            await _userService.DeleteUserAsync(id);
-            return NoContent();
-        }
-
         [HttpGet, Authorize(Roles = nameof(AccessRole.Customer))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]
