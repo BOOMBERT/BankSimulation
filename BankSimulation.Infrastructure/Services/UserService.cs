@@ -55,8 +55,6 @@ namespace BankSimulation.Infrastructure.Services
             }
 
             userEntity.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
-            _userRepository.UpdateUser(userEntity);
-
             return await _userRepository.SaveChangesAsync();
         }
 
@@ -80,8 +78,6 @@ namespace BankSimulation.Infrastructure.Services
             }
 
             userEntity.Email = newEmail;
-            _userRepository.UpdateUser(userEntity);
-
             return await _userRepository.SaveChangesAsync();
         }
     }

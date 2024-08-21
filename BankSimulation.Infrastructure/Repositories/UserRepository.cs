@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
-using BankSimulation.Application.Dtos.Auth;
 using BankSimulation.Application.Dtos.User;
 using BankSimulation.Application.Interfaces.Repositories;
 using BankSimulation.Domain.Entities;
@@ -23,7 +22,8 @@ namespace BankSimulation.Infrastructure.Repositories
 
         public async Task AddUserAsync(User user)
         {
-            await _context.Users.AddAsync(user);
+            await _context.Users
+                .AddAsync(user);
         }
 
         public async Task<User?> GetUserByIdAsync(Guid id)
@@ -46,34 +46,13 @@ namespace BankSimulation.Infrastructure.Repositories
                 .AnyAsync(u => u.Email == email);
         }
 
-        public async Task<AuthUserDto?> GetUserAuthDataAsync(string email)
+        public async Task<AuthUserDto?> GetUserAuthDataByEmailAsync(string email)
         {
             return await _context.Users
                 .AsNoTracking()
                 .Where(u => u.Email == email)
                 .ProjectTo<AuthUserDto>(_mapper.ConfigurationProvider)
                 .SingleOrDefaultAsync();
-        }
-
-        public async Task AddUserRefreshTokenAsync(RefreshToken refreshToken)
-        {
-            await _context.RefreshTokens.AddAsync(refreshToken);
-        }
-
-        public async Task<RefreshTokenDto?> GetRefreshTokenByUserIdAsync(Guid userId)
-        {
-            return await _context.RefreshTokens
-                .AsNoTracking()
-                .Where(rt => rt.UserId == userId)
-                .Select(rt => new RefreshTokenDto(rt.Token, rt.ExpirationDate))
-                .SingleOrDefaultAsync();
-        }
-    
-        public async Task DeleteRefreshTokenByUserIdAsync(Guid userId)
-        {
-            await _context.RefreshTokens
-                .Where(rt => rt.UserId == userId)
-                .ExecuteDeleteAsync();
         }
 
         public async Task<IList<AccessRole>?> GetUserAccessRolesAsync(Guid userId)
@@ -85,11 +64,31 @@ namespace BankSimulation.Infrastructure.Repositories
                 .SingleOrDefaultAsync();
         }
 
-        public void UpdateUser(User user)
+        public async Task<Guid?> GetUserIdByEmailAsync(string email)
         {
-            _context.Users.Update(user);
+            return await _context.Users
+                .AsNoTracking()
+                .Where(u => u.Email == email)
+                .Select(u => (Guid?)u.Id)
+                .SingleOrDefaultAsync();
         }
-        
+
+        public async Task<bool> UserAlreadyDeletedByIdAsync(Guid userId)
+        {
+            return await _context.Users
+                .AsNoTracking()
+                .Where(u => u.Id == userId)
+                .Select(u => u.IsDeleted)
+                .SingleOrDefaultAsync();
+        }
+
+        public async Task DeleteUserByIdAsync(Guid userId)
+        {
+            await _context.Users
+                .Where(u => u.Id == userId)
+                .ExecuteUpdateAsync(u => u.SetProperty(x => x.IsDeleted, true));
+        }
+
         public async Task<bool> SaveChangesAsync()
         {
             return (await _context.SaveChangesAsync() >= 0);

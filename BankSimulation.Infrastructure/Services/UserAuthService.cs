@@ -14,16 +14,18 @@ namespace BankSimulation.Infrastructure.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly IAuthService _authService;
+        private readonly IRefreshTokenRepository _refreshTokenRepository;
 
-        public UserAuthService(IUserRepository userRepository, IAuthService authService)
+        public UserAuthService(IUserRepository userRepository, IAuthService authService, IRefreshTokenRepository refreshTokenRepository)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _authService = authService ?? throw new ArgumentNullException(nameof(authService));
+            _refreshTokenRepository = refreshTokenRepository ?? throw new ArgumentNullException(nameof(refreshTokenRepository));
         }
 
         public async Task<(AccessTokenDto, RefreshTokenDto)> AuthenticateUserAsync(LoginUserDto userToAuth)
         {
-            var user = await _userRepository.GetUserAuthDataAsync(userToAuth.Email);
+            var user = await _userRepository.GetUserAuthDataByEmailAsync(userToAuth.Email);
 
             if (user == null || !VerifyUserPassword(userToAuth.Password, user.Password))
             {
@@ -32,11 +34,11 @@ namespace BankSimulation.Infrastructure.Services
 
             if (user.IsDeleted) { throw new UserAlreadyDeletedException(user.Id.ToString()); }
 
-            var storedRefreshToken = await _userRepository.GetRefreshTokenByUserIdAsync(user.Id);
+            var storedRefreshToken = await _refreshTokenRepository.GetRefreshTokenByUserIdAsync(user.Id);
 
             if (storedRefreshToken != null)
             {
-                await _userRepository.DeleteRefreshTokenByUserIdAsync(user.Id);
+                await _refreshTokenRepository.DeleteRefreshTokenByUserIdAsync(user.Id);
             }
             var newRefreshToken = await CreateUserRefreshTokenAsync(user.Id);
 
@@ -51,14 +53,14 @@ namespace BankSimulation.Infrastructure.Services
             if (string.IsNullOrEmpty(refreshToken)) { throw new InvalidTokenFormatException(refreshToken); }
 
             var userIdFromAccessToken = GetUserIdFromJwt(accessToken);
-            var storedRefreshToken = await _userRepository.GetRefreshTokenByUserIdAsync(userIdFromAccessToken);
+            var storedRefreshToken = await _refreshTokenRepository.GetRefreshTokenByUserIdAsync(userIdFromAccessToken);
 
             if (storedRefreshToken == null || storedRefreshToken.Token != refreshToken || storedRefreshToken.ExpirationDate <= DateTime.UtcNow)
             {
                 throw new InvalidRefreshTokenException(refreshToken);
             }
 
-            await _userRepository.DeleteRefreshTokenByUserIdAsync(userIdFromAccessToken);
+            await _refreshTokenRepository.DeleteRefreshTokenByUserIdAsync(userIdFromAccessToken);
             var newRefreshToken = await CreateUserRefreshTokenAsync(userIdFromAccessToken);
 
             var userRoles = await _userRepository.GetUserAccessRolesAsync(newRefreshToken.UserId) ?? Enumerable.Empty<AccessRole>();
@@ -93,7 +95,7 @@ namespace BankSimulation.Infrastructure.Services
             var refreshToken = _authService.GenerateRefreshToken();
             refreshToken.UserId = userId;
 
-            await _userRepository.AddUserRefreshTokenAsync(refreshToken);
+            await _refreshTokenRepository.AddRefreshTokenAsync(refreshToken);
             await _userRepository.SaveChangesAsync();
 
             return refreshToken;

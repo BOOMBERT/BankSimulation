@@ -1,5 +1,4 @@
-﻿using BankSimulation.Application.Dtos.Auth;
-using BankSimulation.Application.Dtos.User;
+﻿using BankSimulation.Application.Dtos.User;
 using BankSimulation.Domain.Entities;
 using BankSimulation.Domain.Enums;
 
@@ -11,12 +10,11 @@ namespace BankSimulation.Application.Interfaces.Repositories
         Task<User?> GetUserByIdAsync(Guid id);
         Task<User?> GetUserByEmailAsync(string email);
         Task<bool> EmailAlreadyExistsAsync(string email);
-        Task<AuthUserDto?> GetUserAuthDataAsync(string email);
-        Task AddUserRefreshTokenAsync(RefreshToken refreshToken);
-        Task<RefreshTokenDto?> GetRefreshTokenByUserIdAsync(Guid userId);
-        Task DeleteRefreshTokenByUserIdAsync(Guid userId);
+        Task<AuthUserDto?> GetUserAuthDataByEmailAsync(string email);
         Task<IList<AccessRole>?> GetUserAccessRolesAsync(Guid userId);
-        void UpdateUser(User user);
+        Task<Guid?> GetUserIdByEmailAsync(string email);
+        Task<bool> UserAlreadyDeletedByIdAsync(Guid userId);
+        Task DeleteUserByIdAsync(Guid userId);
         Task<bool> SaveChangesAsync();
     }
 }
