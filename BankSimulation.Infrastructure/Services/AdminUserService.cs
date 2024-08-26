@@ -1,11 +1,9 @@
 ﻿using AutoMapper;
 using BankSimulation.Application.Dtos.User;
-using BankSimulation.Application.Exceptions;
 using BankSimulation.Application.Exceptions.User;
 using BankSimulation.Application.Interfaces.Repositories;
 using BankSimulation.Application.Interfaces.Services;
 using BankSimulation.Application.Validators.User;
-using FluentValidation.Results;
 using Microsoft.AspNetCore.JsonPatch;
 
 namespace BankSimulation.Infrastructure.Services
@@ -58,7 +56,7 @@ namespace BankSimulation.Infrastructure.Services
                 throw new EmailAlreadyRegisteredException(updateUserDto.Email);
             }
             _mapper.Map(updateUserDto, userEntity);
-            userEntity.Password = BCrypt.Net.BCrypt.HashPassword(userEntity.Password);
+            userEntity.Password = SecurityService.HashText(userEntity.Password);
 
             return await _userRepository.SaveChangesAsync();
         }
@@ -73,7 +71,7 @@ namespace BankSimulation.Infrastructure.Services
             var validator = new AdminUpdateUserDtoValidator();
             var validationResult = validator.Validate(userToPatch);
 
-            ThrowValidationExceptionIfInvalid(validationResult);
+            UtilsService.CheckValidationResult(validationResult);
 
             var emailOperation = patchDocument.Operations
                 .SingleOrDefault(op => op.path.TrimStart('/').Equals(nameof(userToPatch.Email), StringComparison.OrdinalIgnoreCase));
@@ -91,24 +89,9 @@ namespace BankSimulation.Infrastructure.Services
                 }
             }
             _mapper.Map(userToPatch, userEntity);
-            userEntity.Password = BCrypt.Net.BCrypt.HashPassword(userEntity.Password);
+            userEntity.Password = SecurityService.HashText(userEntity.Password);
 
             return await _userRepository.SaveChangesAsync();
-        }
-
-        private void ThrowValidationExceptionIfInvalid(ValidationResult validationResult)
-        {
-            if (!validationResult.IsValid)
-            {
-                var errors = validationResult.Errors
-                    .GroupBy(e => e.PropertyName)
-                    .ToDictionary(
-                        g => g.Key,
-                        g => g.Select(e => e.ErrorMessage).ToArray()
-                    );
-
-                throw new ValidationErrorException(errors);
-            }
         }
     }
 }

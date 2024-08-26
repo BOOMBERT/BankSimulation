@@ -8,6 +8,6 @@ namespace BankSimulation.Application.Exceptions.SecurityQuestion
             string errorContext,
             string title = "User Security Question Not Found",
             string details = "The specified user security question does not exist or could not be found.")
-            : base(title, StatusCodes.Status409Conflict, details, errorContext) { }
+            : base(title, StatusCodes.Status404NotFound, details, errorContext) { }
     }
 }

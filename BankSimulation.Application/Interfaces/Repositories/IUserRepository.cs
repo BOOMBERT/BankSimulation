@@ -15,6 +15,7 @@ namespace BankSimulation.Application.Interfaces.Repositories
         Task<Guid?> GetUserIdByEmailAsync(string email);
         Task<bool> UserAlreadyDeletedByIdAsync(Guid userId);
         Task DeleteUserByIdAsync(Guid userId);
+        Task UpdateUserPasswordAsync(Guid userId, string newPassword);
         Task<bool> SaveChangesAsync();
     }
 }

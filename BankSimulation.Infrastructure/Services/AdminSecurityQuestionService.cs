@@ -33,7 +33,7 @@ namespace BankSimulation.Infrastructure.Services
             var securityQuestion = new SecurityQuestion
             {
                 Question = securityQuestionDto.Question,
-                Answer = BCrypt.Net.BCrypt.HashPassword(securityQuestionDto.Answer),
+                Answer = SecurityService.HashText(securityQuestionDto.Answer.ToUpper()),
                 UserId = userId
             };
 
@@ -49,7 +49,7 @@ namespace BankSimulation.Infrastructure.Services
                 ?? throw new UserSecurityQuestionDoesNotExistException(userId.ToString());
 
             _mapper.Map(securityQuestionDto, securityQuestionEntity);
-            securityQuestionEntity.Answer = BCrypt.Net.BCrypt.HashPassword(securityQuestionEntity.Answer);
+            securityQuestionEntity.Answer = SecurityService.HashText(securityQuestionEntity.Answer);
 
             return await _userRepository.SaveChangesAsync();
         }

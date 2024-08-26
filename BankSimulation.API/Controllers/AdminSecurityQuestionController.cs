@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BankSimulation.API.Controllers
 {
-    [Route("api/admin/security-question")]
+    [Route("api/admin/users")]
     [ApiController]
     public class AdminSecurityQuestionController : ControllerBase
     {
@@ -18,7 +18,7 @@ namespace BankSimulation.API.Controllers
             _adminSecurityQuestionService = adminSecurityQuestionService ?? throw new ArgumentNullException(nameof(adminSecurityQuestionService));
         }
 
-        [HttpPost("{email}"), Authorize(Roles = nameof(AccessRole.Admin))]
+        [HttpPost("{email}/security-question"), Authorize(Roles = nameof(AccessRole.Admin))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ErrorDetails))]
@@ -28,30 +28,27 @@ namespace BankSimulation.API.Controllers
             return Ok(await _adminSecurityQuestionService.SetUserSecurityQuestionAsync(email, securityQuestionDto));
         }
 
-        [HttpPut("{email}"), Authorize(Roles = nameof(AccessRole.Admin))]
+        [HttpPut("{email}/security-question"), Authorize(Roles = nameof(AccessRole.Admin))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ErrorDetails))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<bool>> UpdateUserSecurityQuestion(string email, SecurityQuestionDto securityQuestionDto)
         {
             return Ok(await _adminSecurityQuestionService.ChangeSecurityQuestionByUserEmailAsync(email, securityQuestionDto));
         }
 
-        [HttpDelete("{email}"), Authorize(Roles = nameof(AccessRole.Admin))]
+        [HttpDelete("{email}/security-question"), Authorize(Roles = nameof(AccessRole.Admin))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ErrorDetails))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<bool>> DeleteUserSecurityQuestion(string email)
         {
             return Ok(await _adminSecurityQuestionService.DeleteSecurityQuestionByUserEmailAsync(email));
         }
 
-        [HttpGet("{email}"), Authorize(Roles = nameof(AccessRole.Admin))]
+        [HttpGet("{email}/security-question"), Authorize(Roles = nameof(AccessRole.Admin))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ErrorDetails))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<string>> GetUserSecurityQuestion(string email)
         {

@@ -9,6 +9,6 @@ namespace BankSimulation.Application.Interfaces.Services
         Task<(AccessTokenDto, RefreshTokenDto)> AuthenticateUserAsync(LoginUserDto userToAuth);
         Task<(AccessTokenDto, RefreshTokenDto)> RefreshUserTokensAsync(string accessToken, string? refreshToken);
         Task<User> GetUserEntityFromJwtAsync(string token);
-        bool VerifyUserPassword(string plainPassword, string passwordHash);
+        Guid GetUserIdFromJwt(string token);
     }
 }

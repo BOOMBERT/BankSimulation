@@ -89,6 +89,13 @@ namespace BankSimulation.Infrastructure.Repositories
                 .ExecuteUpdateAsync(u => u.SetProperty(x => x.IsDeleted, true));
         }
 
+        public async Task UpdateUserPasswordAsync(Guid userId, string newPassword)
+        {
+            await _context.Users
+                .Where(u => u.Id == userId)
+                .ExecuteUpdateAsync(u => u.SetProperty(x => x.Password, newPassword));
+        }
+
         public async Task<bool> SaveChangesAsync()
         {
             return (await _context.SaveChangesAsync() >= 0);

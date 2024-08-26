@@ -29,7 +29,7 @@ namespace BankSimulation.Infrastructure.Services
             }
 
             var userEntity = _mapper.Map<User>(user);
-            userEntity.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
+            userEntity.Password = SecurityService.HashText(user.Password);
             userEntity.AccessRoles.Add(AccessRole.Customer);
 
             await _userRepository.AddUserAsync(userEntity);
@@ -49,12 +49,12 @@ namespace BankSimulation.Infrastructure.Services
 
             var userEntity = await _userAuthService.GetUserEntityFromJwtAsync(accessToken);
 
-            if (!_userAuthService.VerifyUserPassword(currentPassword, userEntity.Password))
+            if (!SecurityService.VerifyHashedText(currentPassword, userEntity.Password))
             {
                 throw new IncorrectCurrentPasswordException(userEntity.Id.ToString());
             }
 
-            userEntity.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            userEntity.Password = SecurityService.HashText(newPassword);
             return await _userRepository.SaveChangesAsync();
         }
 

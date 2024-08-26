@@ -42,6 +42,15 @@ namespace BankSimulation.Infrastructure.Repositories
                 .SingleOrDefaultAsync();
         }
 
+        public async Task<string?> GetOnlyAnswerByUserIdAsync(Guid userId)
+        {
+            return await _context.SecurityQuestions
+                .AsNoTracking()
+                .Where(sq => sq.UserId == userId)
+                .Select(sq => sq.Answer)
+                .SingleOrDefaultAsync();
+        }
+
         public async Task DeleteSecurityQuestionByUserIdAsync(Guid userId)
         {
             await _context.SecurityQuestions

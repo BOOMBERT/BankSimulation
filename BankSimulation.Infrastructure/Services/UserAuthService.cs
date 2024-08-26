@@ -27,7 +27,7 @@ namespace BankSimulation.Infrastructure.Services
         {
             var user = await _userRepository.GetUserAuthDataByEmailAsync(userToAuth.Email);
 
-            if (user == null || !VerifyUserPassword(userToAuth.Password, user.Password))
+            if (user == null || !SecurityService.VerifyHashedText(userToAuth.Password, user.Password))
             {
                 throw new InvalidCredentialsException(userToAuth.Email);
             }
@@ -78,12 +78,7 @@ namespace BankSimulation.Infrastructure.Services
             return userEntity ?? throw new UserNotFoundException(userIdFromToken.ToString());
         }
 
-        public bool VerifyUserPassword(string plainPassword, string passwordHash)
-        {
-            return BCrypt.Net.BCrypt.Verify(plainPassword, passwordHash);
-        }
-
-        private Guid GetUserIdFromJwt(string token)
+        public Guid GetUserIdFromJwt(string token)
         {
             var subClaim = _authService.GetSpecificClaimFromJwt(token, JwtRegisteredClaimNames.Sub);
             if (!Guid.TryParse(subClaim.Value, out var userId)) { throw new InvalidTokenFormatException(token); }
