@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace BankSimulation.Infrastructure.Migrations
 {
-    [DbContext(typeof(UsersContext))]
+    [DbContext(typeof(AppDbContext))]
     [Migration("20240726085423_BankSimulationDBInitialMigration")]
     partial class BankSimulationDBInitialMigration
     {

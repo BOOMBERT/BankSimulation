@@ -6,6 +6,7 @@ using BankSimulation.Application.Interfaces.Repositories;
 using BankSimulation.Application.Interfaces.Services;
 using BankSimulation.Domain.Entities;
 using BankSimulation.Domain.Enums;
+using BankSimulation.Infrastructure.Services.Utils;
 using System.IdentityModel.Tokens.Jwt;
 
 namespace BankSimulation.Infrastructure.Services
@@ -34,9 +35,7 @@ namespace BankSimulation.Infrastructure.Services
 
             if (user.IsDeleted) { throw new UserAlreadyDeletedException(user.Id.ToString()); }
 
-            var storedRefreshToken = await _refreshTokenRepository.GetRefreshTokenByUserIdAsync(user.Id);
-
-            if (storedRefreshToken != null)
+            if (await _refreshTokenRepository.RefreshTokenAlreadyExistsByUserIdAsync(user.Id))
             {
                 await _refreshTokenRepository.DeleteRefreshTokenByUserIdAsync(user.Id);
             }
@@ -69,13 +68,6 @@ namespace BankSimulation.Infrastructure.Services
                 new AccessTokenDto(_authService.GenerateAccessToken(newRefreshToken.UserId, userRoles)),
                 new RefreshTokenDto(newRefreshToken.Token, newRefreshToken.ExpirationDate)
                 );
-        }
-
-        public async Task<User> GetUserEntityFromJwtAsync(string token)
-        {
-            var userIdFromToken = GetUserIdFromJwt(token);
-            var userEntity = await _userRepository.GetUserByIdAsync(userIdFromToken);
-            return userEntity ?? throw new UserNotFoundException(userIdFromToken.ToString());
         }
 
         public Guid GetUserIdFromJwt(string token)

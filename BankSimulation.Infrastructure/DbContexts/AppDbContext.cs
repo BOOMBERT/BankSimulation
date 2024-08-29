@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BankSimulation.Infrastructure.DbContexts
 {
-    public class UsersContext : DbContext
+    public class AppDbContext : DbContext
     {
-        public UsersContext(DbContextOptions<UsersContext> options) : base(options) { }
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
         public DbSet<User> Users { get; set; }
         public DbSet<SecurityQuestion> SecurityQuestions { get; set; }

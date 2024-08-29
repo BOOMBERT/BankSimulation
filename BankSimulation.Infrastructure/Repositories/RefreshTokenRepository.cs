@@ -8,9 +8,9 @@ namespace BankSimulation.Infrastructure.Repositories
 {
     public class RefreshTokenRepository : IRefreshTokenRepository
     {
-        private readonly UsersContext _context;
+        private readonly AppDbContext _context;
 
-        public RefreshTokenRepository(UsersContext context)
+        public RefreshTokenRepository(AppDbContext context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
@@ -28,6 +28,13 @@ namespace BankSimulation.Infrastructure.Repositories
                 .Where(rt => rt.UserId == userId)
                 .Select(rt => new RefreshTokenDto(rt.Token, rt.ExpirationDate))
                 .SingleOrDefaultAsync();
+        }
+
+        public async Task<bool> RefreshTokenAlreadyExistsByUserIdAsync(Guid userId)
+        {
+            return await _context.RefreshTokens
+                .AsNoTracking()
+                .AnyAsync(rt => rt.UserId == userId);
         }
 
         public async Task DeleteRefreshTokenByUserIdAsync(Guid userId)

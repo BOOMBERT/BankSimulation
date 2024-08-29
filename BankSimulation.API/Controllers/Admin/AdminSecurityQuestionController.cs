@@ -5,7 +5,7 @@ using BankSimulation.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BankSimulation.API.Controllers
+namespace BankSimulation.API.Controllers.Admin
 {
     [Route("api/admin/users")]
     [ApiController]

@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BankSimulation.API.Controllers
+namespace BankSimulation.API.Controllers.Admin
 {
     [Route("api/admin/users")]
     [ApiController]
@@ -19,22 +19,22 @@ namespace BankSimulation.API.Controllers
             _adminUserService = adminUserService ?? throw new ArgumentNullException(nameof(adminUserService));
         }
 
-        [HttpGet("by-id"), Authorize(Roles = nameof(AccessRole.Admin))]
+        [HttpGet("{userId}"), Authorize(Roles = nameof(AccessRole.Admin))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<UserDto>> GetUserById(Guid id)
+        public async Task<ActionResult<UserDto>> GetUserById(Guid userId)
         {
-            return Ok(await _adminUserService.GetUserByIdAsync(id));
+            return Ok(await _adminUserService.GetUserAsync(userId));
         }
 
-        [HttpGet("by-email"), Authorize(Roles = nameof(AccessRole.Admin))]
+        [HttpGet("by-email/{email}"), Authorize(Roles = nameof(AccessRole.Admin))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<UserDto>> GetUserByEmail(string email)
         {
-            return Ok(await _adminUserService.GetUserByEmailAsync(email));
+            return Ok(await _adminUserService.GetUserAsync(email));
         }
 
         [HttpDelete("{userId}"), Authorize(Roles = nameof(AccessRole.Admin))]

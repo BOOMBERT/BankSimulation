@@ -2,7 +2,7 @@
 {
     public interface ISecurityQuestionService
     {
-        Task<string> GetOnlySecurityQuestionByAccessTokenAsync(string accessToken);
+        Task<string> GetOnlyQuestionByAccessTokenAsync(string accessToken);
         Task<bool> UpdateUserPasswordBySecurityQuestionAnswerAsync(string accessToken, string answer, string newPassword);
     }
 }

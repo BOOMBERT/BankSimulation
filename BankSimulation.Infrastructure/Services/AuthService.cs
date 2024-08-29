@@ -25,20 +25,17 @@ namespace BankSimulation.Infrastructure.Services
             var tokenHandler = new JwtSecurityTokenHandler();
             var jwtSecurityToken = tokenHandler.ReadToken(token) as JwtSecurityToken ?? throw new InvalidTokenFormatException(token);
 
-            if (jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+            if (!jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
             {
-                return jwtSecurityToken.Claims.ToList();
+                throw new InvalidTokenFormatException(token);
             }
-            else { throw new InvalidTokenFormatException(token); }
+            return jwtSecurityToken.Claims.ToList();
         }
 
         public Claim GetSpecificClaimFromJwt(string token, string claimName)
         {
             var tokenClaims = GetAllClaimsFromJwt(token);
-            var claim = tokenClaims.FirstOrDefault(c => c.Type == claimName);
-
-            if (claim == null) { throw new InvalidTokenFormatException(token); }
-            return claim;
+            return tokenClaims.FirstOrDefault(c => c.Type == claimName) ?? throw new InvalidTokenFormatException(token);
         }
 
         public string GenerateAccessToken(Guid userId, IEnumerable<AccessRole> userAccessRoles)

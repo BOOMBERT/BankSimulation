@@ -2,5 +2,5 @@
 
 namespace BankSimulation.Application.Dtos.User
 {
-    public record AuthUserDto(Guid Id, string Password, bool IsDeleted, ICollection<AccessRole> AccessRoles);
+    public sealed record AuthUserDto(Guid Id, string Password, bool IsDeleted, ICollection<AccessRole> AccessRoles);
 }

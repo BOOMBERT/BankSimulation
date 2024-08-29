@@ -5,9 +5,9 @@ namespace BankSimulation.Application.Interfaces.Services
 {
     public interface IAdminUserService
     {
-        Task<UserDto> GetUserByIdAsync(Guid id);
-        Task<UserDto> GetUserByEmailAsync(string email);
-        Task<bool> DeleteUserAsync(Guid id);
+        Task<UserDto> GetUserAsync(Guid userId);
+        Task<UserDto> GetUserAsync(string email);
+        Task<bool> DeleteUserAsync(Guid userId);
         Task<bool> UpdateUserAsync(Guid userId, AdminUpdateUserDto updateUserDto);
         Task<bool> UpdateUserPartiallyAsync(Guid userId, JsonPatchDocument<AdminUpdateUserDto> patchDocument);
     }

@@ -1,7 +1,7 @@
 ﻿using BankSimulation.Application.Exceptions;
 using FluentValidation.Results;
 
-namespace BankSimulation.Infrastructure.Services
+namespace BankSimulation.Infrastructure.Services.Utils
 {
     internal static class UtilsService
     {

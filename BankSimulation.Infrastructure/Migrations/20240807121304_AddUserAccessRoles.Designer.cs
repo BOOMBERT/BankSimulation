@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace BankSimulation.Infrastructure.Migrations
 {
-    [DbContext(typeof(UsersContext))]
+    [DbContext(typeof(AppDbContext))]
     [Migration("20240807121304_AddUserAccessRoles")]
     partial class AddUserAccessRoles
     {

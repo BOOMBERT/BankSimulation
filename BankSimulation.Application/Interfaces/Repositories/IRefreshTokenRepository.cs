@@ -7,6 +7,7 @@ namespace BankSimulation.Application.Interfaces.Repositories
     {
         Task AddRefreshTokenAsync(RefreshToken refreshToken);
         Task<RefreshTokenDto?> GetRefreshTokenByUserIdAsync(Guid userId);
+        Task<bool> RefreshTokenAlreadyExistsByUserIdAsync(Guid userId);
         Task DeleteRefreshTokenByUserIdAsync(Guid userId);
     }
 }

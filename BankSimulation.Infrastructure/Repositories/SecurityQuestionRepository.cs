@@ -1,4 +1,5 @@
-﻿using BankSimulation.Application.Interfaces.Repositories;
+﻿using BankSimulation.Application.Dtos.User;
+using BankSimulation.Application.Interfaces.Repositories;
 using BankSimulation.Domain.Entities;
 using BankSimulation.Infrastructure.DbContexts;
 using Microsoft.EntityFrameworkCore;
@@ -7,9 +8,9 @@ namespace BankSimulation.Infrastructure.Repositories
 {
     public class SecurityQuestionRepository : ISecurityQuestionRepository
     {
-        private readonly UsersContext _context;
+        private readonly AppDbContext _context;
 
-        public SecurityQuestionRepository(UsersContext context)
+        public SecurityQuestionRepository(AppDbContext context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
@@ -18,19 +19,6 @@ namespace BankSimulation.Infrastructure.Repositories
         {
             await _context.SecurityQuestions
                 .AddAsync(securityQuestion);
-        }
-
-        public async Task<bool> SecurityQuestionAlreadyExistsByUserIdAsync(Guid userId)
-        {
-            return await _context.SecurityQuestions
-                .AsNoTracking()
-                .AnyAsync(sq => sq.UserId == userId);
-        }
-
-        public async Task<SecurityQuestion?> GetSecurityQuestionByUserIdAsync(Guid userId)
-        {
-            return await _context.SecurityQuestions
-                .SingleOrDefaultAsync(sq => sq.UserId == userId);
         }
 
         public async Task<string?> GetOnlyQuestionByUserIdAsync(Guid userId)
@@ -49,6 +37,22 @@ namespace BankSimulation.Infrastructure.Repositories
                 .Where(sq => sq.UserId == userId)
                 .Select(sq => sq.Answer)
                 .SingleOrDefaultAsync();
+        }
+
+        public async Task<bool> SecurityQuestionAlreadyExistsByUserIdAsync(Guid userId)
+        {
+            return await _context.SecurityQuestions
+                .AsNoTracking()
+                .AnyAsync(sq => sq.UserId == userId);
+        }
+
+        public async Task UpdateSecurityQuestionByUserIdAsync(Guid userId, SecurityQuestionDto newSecurityQuestion)
+        {
+            await _context.SecurityQuestions
+                .Where(sq => sq.UserId == userId)
+                .ExecuteUpdateAsync(sq => sq
+                .SetProperty(sq => sq.Question, newSecurityQuestion.Question)
+                .SetProperty(sq => sq.Answer, newSecurityQuestion.Answer));
         }
 
         public async Task DeleteSecurityQuestionByUserIdAsync(Guid userId)

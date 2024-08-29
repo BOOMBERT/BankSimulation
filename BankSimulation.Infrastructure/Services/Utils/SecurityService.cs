@@ -1,4 +1,4 @@
-﻿namespace BankSimulation.Infrastructure.Services
+﻿namespace BankSimulation.Infrastructure.Services.Utils
 {
     internal static class SecurityService
     {

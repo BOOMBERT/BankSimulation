@@ -5,6 +5,7 @@ using BankSimulation.Application.Interfaces.Repositories;
 using BankSimulation.Application.Interfaces.Services;
 using BankSimulation.Domain.Entities;
 using BankSimulation.Domain.Enums;
+using BankSimulation.Infrastructure.Services.Utils;
 
 namespace BankSimulation.Infrastructure.Services
 {
@@ -40,44 +41,45 @@ namespace BankSimulation.Infrastructure.Services
 
         public async Task<UserDto> GetUserViaAccessTokenAsync(string accessToken)
         {
-            return _mapper.Map<UserDto>(await _userAuthService.GetUserEntityFromJwtAsync(accessToken));
+            var userId = _userAuthService.GetUserIdFromJwt(accessToken);
+            return await _userRepository.GetUserDtoByIdAsync(userId) ?? throw new UserNotFoundException(userId.ToString());
         }
 
         public async Task<bool> UpdateUserPasswordAsync(string accessToken, string currentPassword, string newPassword)
         {
             if (currentPassword == newPassword) { throw new IncorrectNewPasswordException(); }
 
-            var userEntity = await _userAuthService.GetUserEntityFromJwtAsync(accessToken);
+            var userId = _userAuthService.GetUserIdFromJwt(accessToken);
+            var userHashedPasswordFromDb = await _userRepository.GetUserPasswordByIdAsync(userId) ?? throw new UserNotFoundException(userId.ToString());
 
-            if (!SecurityService.VerifyHashedText(currentPassword, userEntity.Password))
+            if (!SecurityService.VerifyHashedText(currentPassword, userHashedPasswordFromDb))
             {
-                throw new IncorrectCurrentPasswordException(userEntity.Id.ToString());
+                throw new IncorrectCurrentPasswordException(userId.ToString());
+            }
+            if (SecurityService.VerifyHashedText(newPassword, userHashedPasswordFromDb))
+            {
+                throw new IncorrectNewPasswordException(userId.ToString());
             }
 
-            userEntity.Password = SecurityService.HashText(newPassword);
+            await _userRepository.UpdateUserPasswordAsync(userId, SecurityService.HashText(newPassword));
             return await _userRepository.SaveChangesAsync();
         }
 
         public async Task<bool> UpdateUserEmailAsync(string accessToken, string currentEmail, string newEmail)
         {
-            if (currentEmail == newEmail) 
-            {
-                throw new IncorrectNewEmailException(newEmail); 
-            }
+            if (currentEmail == newEmail) { throw new IncorrectNewEmailException(newEmail); }
 
             if (await _userRepository.EmailAlreadyExistsAsync(newEmail))
             {
                 throw new EmailAlreadyRegisteredException(newEmail);
             }
 
-            var userEntity = await _userAuthService.GetUserEntityFromJwtAsync(accessToken);
+            var userId = _userAuthService.GetUserIdFromJwt(accessToken);
+            var userEmailFromDb = await _userRepository.GetUserEmailByIdAsync(userId) ?? throw new UserNotFoundException(userId.ToString());
 
-            if (currentEmail != userEntity.Email)
-            {
-                throw new IncorrectCurrentEmailException(currentEmail);
-            }
+            if (currentEmail != userEmailFromDb) { throw new IncorrectCurrentEmailException(currentEmail); }
 
-            userEntity.Email = newEmail;
+            await _userRepository.UpdateUserEmailAsync(userId, newEmail);
             return await _userRepository.SaveChangesAsync();
         }
     }

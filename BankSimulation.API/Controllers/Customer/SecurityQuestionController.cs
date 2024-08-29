@@ -5,7 +5,7 @@ using BankSimulation.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BankSimulation.API.Controllers
+namespace BankSimulation.API.Controllers.Customer
 {
     [Route("api/users/security-question")]
     [ApiController]
@@ -25,7 +25,7 @@ namespace BankSimulation.API.Controllers
         public async Task<ActionResult<string>> GetSecurityQuestion()
         {
             string accessTokenFromHeader = Request.Headers.Authorization.ToString().Split(' ')[1];
-            return Ok(await _securityQuestionService.GetOnlySecurityQuestionByAccessTokenAsync(accessTokenFromHeader));
+            return Ok(await _securityQuestionService.GetOnlyQuestionByAccessTokenAsync(accessTokenFromHeader));
         }
 
         [HttpPatch("change-password"), Authorize(Roles = nameof(AccessRole.Customer))]

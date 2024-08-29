@@ -4,6 +4,7 @@ using BankSimulation.Application.Exceptions.User;
 using BankSimulation.Application.Interfaces.Repositories;
 using BankSimulation.Application.Interfaces.Services;
 using BankSimulation.Application.Validators.User;
+using BankSimulation.Infrastructure.Services.Utils;
 using Microsoft.AspNetCore.JsonPatch;
 
 namespace BankSimulation.Infrastructure.Services
@@ -19,17 +20,11 @@ namespace BankSimulation.Infrastructure.Services
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
         }
 
-        public async Task<UserDto> GetUserByIdAsync(Guid userId)
-        {
-            var userEntity = await _userRepository.GetUserByIdAsync(userId);
-            return userEntity == null ? throw new UserNotFoundException(userId.ToString()) : _mapper.Map<UserDto>(userEntity);
-        }
+        public async Task<UserDto> GetUserAsync(Guid userId) => 
+            await _userRepository.GetUserDtoByIdAsync(userId) ?? throw new UserNotFoundException(userId.ToString());
 
-        public async Task<UserDto> GetUserByEmailAsync(string email)
-        {
-            var userEntity = await _userRepository.GetUserByEmailAsync(email);
-            return userEntity == null ? throw new UserNotFoundException(email) : _mapper.Map<UserDto>(userEntity);
-        }
+        public async Task<UserDto> GetUserAsync(string email) => 
+            await _userRepository.GetUserDtoByEmailAsync(email) ?? throw new UserNotFoundException(email);
 
         public async Task<bool> DeleteUserAsync(Guid userId)
         {
@@ -44,9 +39,9 @@ namespace BankSimulation.Infrastructure.Services
 
         public async Task<bool> UpdateUserAsync(Guid userId, AdminUpdateUserDto updateUserDto)
         {
-            var userEntity = await _userRepository.GetUserByIdAsync(userId) ?? throw new UserNotFoundException(userId.ToString());
+            var userEmail = await _userRepository.GetUserEmailByIdAsync(userId);
 
-            if (userEntity.Email == updateUserDto.Email)
+            if (userEmail == updateUserDto.Email)
             {
                 throw new IncorrectNewEmailException(updateUserDto.Email);
             }
@@ -55,9 +50,11 @@ namespace BankSimulation.Infrastructure.Services
             { 
                 throw new EmailAlreadyRegisteredException(updateUserDto.Email);
             }
-            _mapper.Map(updateUserDto, userEntity);
-            userEntity.Password = SecurityService.HashText(userEntity.Password);
 
+            var updatedUser = new AdminUpdateUserDto(
+                updateUserDto.FirstName, updateUserDto.LastName, updateUserDto.Email, SecurityService.HashText(updateUserDto.Password));
+
+            await _userRepository.UpdateUserByIdAsync(userId, updatedUser);
             return await _userRepository.SaveChangesAsync();
         }
 
