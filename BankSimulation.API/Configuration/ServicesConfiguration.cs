@@ -57,6 +57,10 @@ namespace BankSimulation.API.Configuration
             services.AddScoped<IAdminSecurityQuestionService, AdminSecurityQuestionService>();
 
             services.AddScoped<ISecurityQuestionService, SecurityQuestionService>();
+
+            services.AddScoped<IAdminBankAccountService, AdminBankAccountService>();
+
+            services.AddScoped<IBankAccountRepository, BankAccountRepository>();
         }
     }
 }

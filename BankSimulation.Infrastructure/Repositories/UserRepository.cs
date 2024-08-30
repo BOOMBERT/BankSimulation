@@ -41,13 +41,6 @@ namespace BankSimulation.Infrastructure.Repositories
                 .SingleOrDefaultAsync();
         }
 
-        public async Task<User?> GetUserByEmailAsync(string email)
-        {
-            return await _context.Users
-                .AsNoTracking()
-                .SingleOrDefaultAsync(u => u.Email == email);
-        }
-
         public async Task<UserDto?> GetUserDtoByEmailAsync(string email)
         {
             return await _context.Users
@@ -84,15 +77,6 @@ namespace BankSimulation.Infrastructure.Repositories
                 .SingleOrDefaultAsync();
         }
 
-        public async Task<Guid?> GetUserIdByEmailAsync(string email)
-        {
-            return await _context.Users
-                .AsNoTracking()
-                .Where(u => u.Email == email)
-                .Select(u => (Guid?)u.Id)
-                .SingleOrDefaultAsync();
-        }
-
         public async Task<string?> GetUserEmailByIdAsync(Guid userId)
         {
             return await _context.Users
@@ -116,6 +100,13 @@ namespace BankSimulation.Infrastructure.Repositories
             return await _context.Users
                 .AsNoTracking()
                 .AnyAsync(u => u.Email == email);
+        }
+
+        public async Task<bool> UserAlreadyExistsByIdAsync(Guid userId)
+        {
+            return await _context.Users
+                .AsNoTracking()
+                .AnyAsync(u => u.Id == userId);
         }
 
         public async Task UpdateUserByIdAsync(Guid userId, AdminUpdateUserDto updateUserDto)

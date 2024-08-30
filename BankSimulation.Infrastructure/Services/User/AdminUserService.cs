@@ -28,6 +28,10 @@ namespace BankSimulation.Infrastructure.Services
 
         public async Task<bool> DeleteUserAsync(Guid userId)
         {
+            if (!await _userRepository.UserAlreadyExistsByIdAsync(userId))
+            {
+                throw new UserNotFoundException(userId.ToString());
+            }
             if (await _userRepository.UserAlreadyDeletedByIdAsync(userId))
             {
                 throw new UserAlreadyDeletedException(userId.ToString());
@@ -39,7 +43,8 @@ namespace BankSimulation.Infrastructure.Services
 
         public async Task<bool> UpdateUserAsync(Guid userId, AdminUpdateUserDto updateUserDto)
         {
-            var userEmail = await _userRepository.GetUserEmailByIdAsync(userId);
+            var userEmail = await _userRepository.GetUserEmailByIdAsync(userId) 
+                ?? throw new UserNotFoundException(userId.ToString());
 
             if (userEmail == updateUserDto.Email)
             {

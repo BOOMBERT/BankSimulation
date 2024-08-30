@@ -1,4 +1,4 @@
-﻿using BankSimulation.Application.Dtos.User;
+﻿using BankSimulation.Application.Dtos;
 using FluentValidation;
 
 namespace BankSimulation.Application.Validators.User

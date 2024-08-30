@@ -1,5 +1,5 @@
-﻿using BankSimulation.Application.Dtos.Responses;
-using BankSimulation.Application.Dtos.User;
+﻿using BankSimulation.Application.Dtos;
+using BankSimulation.Application.Dtos.Responses;
 using BankSimulation.Application.Interfaces.Services;
 using BankSimulation.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
@@ -18,41 +18,41 @@ namespace BankSimulation.API.Controllers.Admin
             _adminSecurityQuestionService = adminSecurityQuestionService ?? throw new ArgumentNullException(nameof(adminSecurityQuestionService));
         }
 
-        [HttpPost("{email}/security-question"), Authorize(Roles = nameof(AccessRole.Admin))]
+        [HttpPost("{userId}/security-question"), Authorize(Roles = nameof(AccessRole.Admin))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ErrorDetails))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<bool>> SetUserSecurityQuestion(string email, SecurityQuestionDto securityQuestionDto)
+        public async Task<ActionResult<bool>> SetUserSecurityQuestion(Guid userId, SecurityQuestionDto securityQuestionDto)
         {
-            return Ok(await _adminSecurityQuestionService.SetUserSecurityQuestionAsync(email, securityQuestionDto));
+            return Ok(await _adminSecurityQuestionService.SetUserSecurityQuestionAsync(userId, securityQuestionDto));
         }
 
-        [HttpPut("{email}/security-question"), Authorize(Roles = nameof(AccessRole.Admin))]
+        [HttpPut("{userId}/security-question"), Authorize(Roles = nameof(AccessRole.Admin))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<bool>> UpdateUserSecurityQuestion(string email, SecurityQuestionDto securityQuestionDto)
+        public async Task<ActionResult<bool>> UpdateUserSecurityQuestion(Guid userId, SecurityQuestionDto securityQuestionDto)
         {
-            return Ok(await _adminSecurityQuestionService.ChangeSecurityQuestionByUserEmailAsync(email, securityQuestionDto));
+            return Ok(await _adminSecurityQuestionService.ChangeSecurityQuestionByUserIdAsync(userId, securityQuestionDto));
         }
 
-        [HttpDelete("{email}/security-question"), Authorize(Roles = nameof(AccessRole.Admin))]
+        [HttpDelete("{userId}/security-question"), Authorize(Roles = nameof(AccessRole.Admin))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<bool>> DeleteUserSecurityQuestion(string email)
+        public async Task<ActionResult<bool>> DeleteUserSecurityQuestion(Guid userId)
         {
-            return Ok(await _adminSecurityQuestionService.DeleteSecurityQuestionByUserEmailAsync(email));
+            return Ok(await _adminSecurityQuestionService.DeleteSecurityQuestionByUserIdAsync(userId));
         }
 
-        [HttpGet("{email}/security-question"), Authorize(Roles = nameof(AccessRole.Admin))]
+        [HttpGet("{userId}/security-question"), Authorize(Roles = nameof(AccessRole.Admin))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<string>> GetUserSecurityQuestion(string email)
+        public async Task<ActionResult<string>> GetUserSecurityQuestion(Guid userId)
         {
-            return Ok(await _adminSecurityQuestionService.GetSecurityQuestionByUserEmailAsync(email));
+            return Ok(await _adminSecurityQuestionService.GetSecurityQuestionByUserIdAsync(userId));
         }
     }
 }

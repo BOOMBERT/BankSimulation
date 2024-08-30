@@ -1,4 +1,4 @@
-﻿using BankSimulation.Application.Dtos.User;
+﻿using BankSimulation.Application.Dtos;
 using BankSimulation.Domain.Entities;
 
 namespace BankSimulation.Application.Interfaces.Repositories

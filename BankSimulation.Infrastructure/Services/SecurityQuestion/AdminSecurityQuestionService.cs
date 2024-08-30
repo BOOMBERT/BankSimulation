@@ -1,4 +1,4 @@
-﻿using BankSimulation.Application.Dtos.User;
+﻿using BankSimulation.Application.Dtos;
 using BankSimulation.Application.Exceptions.SecurityQuestion;
 using BankSimulation.Application.Exceptions.User;
 using BankSimulation.Application.Interfaces.Repositories;
@@ -19,9 +19,9 @@ namespace BankSimulation.Infrastructure.Services
             _securityQuestionRepository = securityQuestionRepository ?? throw new ArgumentNullException(nameof(securityQuestionRepository));
         }
 
-        public async Task<bool> SetUserSecurityQuestionAsync(string email, SecurityQuestionDto securityQuestionDto)
+        public async Task<bool> SetUserSecurityQuestionAsync(Guid userId, SecurityQuestionDto securityQuestionDto)
         {
-            var userId = await GetUserIdByEmailIfSecurityQuestionDoesNotExists(email);
+            await EnsureUserHasNoSecurityQuestionAsync(userId);
 
             var securityQuestion = new SecurityQuestion
             {
@@ -34,48 +34,57 @@ namespace BankSimulation.Infrastructure.Services
             return await _userRepository.SaveChangesAsync();
         }
 
-        public async Task<bool> ChangeSecurityQuestionByUserEmailAsync(string email, SecurityQuestionDto securityQuestionDto)
+        public async Task<bool> ChangeSecurityQuestionByUserIdAsync(Guid userId, SecurityQuestionDto securityQuestionDto)
         {
-            var userId = await GetUserIdByEmailIfSecurityQuestionExists(email);
+            await EnsureUserHasSecurityQuestionAsync(userId);
+            
             var updatedSecurityQuestion = new SecurityQuestionDto(securityQuestionDto.Question, SecurityService.HashText(securityQuestionDto.Answer.ToUpper()));
             await _securityQuestionRepository.UpdateSecurityQuestionByUserIdAsync(userId, updatedSecurityQuestion);
+
             return await _userRepository.SaveChangesAsync();
         }
 
-        public async Task<bool> DeleteSecurityQuestionByUserEmailAsync(string email)
+        public async Task<bool> DeleteSecurityQuestionByUserIdAsync(Guid userId)
         {
-            var userId = await GetUserIdByEmailIfSecurityQuestionExists(email);
+            await EnsureUserHasSecurityQuestionAsync(userId);
             await _securityQuestionRepository.DeleteSecurityQuestionByUserIdAsync(userId);
+
             return await _userRepository.SaveChangesAsync();
         }
 
-        public async Task<string> GetSecurityQuestionByUserEmailAsync(string email)
+        public async Task<string> GetSecurityQuestionByUserIdAsync(Guid userId)
         {
-            var userId = await _userRepository.GetUserIdByEmailAsync(email) ?? throw new UserNotFoundException(email);
+            if (!await _userRepository.UserAlreadyExistsByIdAsync(userId))
+            {
+                throw new UserNotFoundException(userId.ToString());
+            }
+
             return await _securityQuestionRepository.GetOnlyQuestionByUserIdAsync(userId)
                 ?? throw new UserSecurityQuestionDoesNotExistException(userId.ToString());
         }
 
-        private async Task<Guid> GetUserIdByEmailIfSecurityQuestionExists(string email)
+        private async Task EnsureUserHasNoSecurityQuestionAsync(Guid userId)
         {
-            var userId = await _userRepository.GetUserIdByEmailAsync(email) ?? throw new UserNotFoundException(email);
-
-            if (!await _securityQuestionRepository.SecurityQuestionAlreadyExistsByUserIdAsync(userId))
+            if (!await _userRepository.UserAlreadyExistsByIdAsync(userId))
             {
-                throw new UserSecurityQuestionDoesNotExistException(userId.ToString());
+                throw new UserNotFoundException(userId.ToString());
             }
-            return userId;
-        }
-
-        private async Task<Guid> GetUserIdByEmailIfSecurityQuestionDoesNotExists(string email)
-        {
-            var userId = await _userRepository.GetUserIdByEmailAsync(email) ?? throw new UserNotFoundException(email);
-
             if (await _securityQuestionRepository.SecurityQuestionAlreadyExistsByUserIdAsync(userId))
             {
                 throw new UserSecurityQuestionAlreadyExistException(userId.ToString());
             }
-            return userId;
+        }
+
+        private async Task EnsureUserHasSecurityQuestionAsync(Guid userId)
+        {
+            if (!await _userRepository.UserAlreadyExistsByIdAsync(userId))
+            {
+                throw new UserNotFoundException(userId.ToString());
+            }
+            if (!await _securityQuestionRepository.SecurityQuestionAlreadyExistsByUserIdAsync(userId))
+            {
+                throw new UserSecurityQuestionDoesNotExistException(userId.ToString());
+            }
         }
     }
 }

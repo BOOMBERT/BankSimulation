@@ -1,4 +1,4 @@
-﻿using BankSimulation.Application.Dtos.User;
+﻿using BankSimulation.Application.Dtos;
 using BankSimulation.Application.Interfaces.Repositories;
 using BankSimulation.Domain.Entities;
 using BankSimulation.Infrastructure.DbContexts;
