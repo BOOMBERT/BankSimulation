@@ -6,7 +6,6 @@ using BankSimulation.Application.Interfaces.Repositories;
 using BankSimulation.Application.Interfaces.Services;
 using BankSimulation.Domain.Entities;
 using BankSimulation.Domain.Enums;
-using Microsoft.IdentityModel.Tokens;
 
 namespace BankSimulation.Infrastructure.Services
 {
@@ -24,9 +23,9 @@ namespace BankSimulation.Infrastructure.Services
             _bankAccountRepository = bankAccountRepository ?? throw new ArgumentNullException(nameof(bankAccountRepository));
         }
 
-        public async Task<bool> CreateUserBankAccountAsync(Guid userId, Currency bankAccountCurrency)
+        public async Task<BankAccountDto> CreateUserBankAccountAsync(Guid userId, Currency bankAccountCurrency)
         {
-            if (!await _userRepository.UserAlreadyExistsByIdAsync(userId))
+            if (!await _userRepository.AlreadyExistsAsync(userId))
             {
                 throw new UserNotFoundException(userId.ToString());
             }
@@ -38,42 +37,53 @@ namespace BankSimulation.Infrastructure.Services
                 UserId = userId, 
             };
 
-            await _bankAccountRepository.AddBankAccountAsync(bankAccount);
-            return await _userRepository.SaveChangesAsync();
+            await _bankAccountRepository.AddAsync(bankAccount);
+            await _userRepository.SaveChangesAsync();
+
+            return _mapper.Map<BankAccountDto>(bankAccount);
         }
 
-        public async Task<bool> DeleteUserBankAccountByNumberAsync(string bankAccountNumber)
+        public async Task<BankAccountDto> GetUserBankAccountAsync(Guid userId, string bankAccountNumber)
         {
-            if (!await _bankAccountRepository.BankAccountNumberAlreadyExistsAsync(bankAccountNumber))
-            {
-                throw new UserBankAccountDoesNotExistException(bankAccountNumber);
-            }
-            if (await _bankAccountRepository.BankAccountAlreadyDeletedAsync(bankAccountNumber))
-            {
-                throw new UserBankAccountAlreadyDeletedException(bankAccountNumber);
-            }
-            await _bankAccountRepository.DeleteBankAccountAsync(bankAccountNumber);
-            return await _userRepository.SaveChangesAsync();
-        }
-
-        public async Task<BankAccountDto> GetUserBankAccountByNumberAsync(string bankAccountNumber)
-        {
-            return _mapper.Map<BankAccountDto>(await _bankAccountRepository.GetBankAccountAsync(bankAccountNumber)
-                ?? throw new UserBankAccountDoesNotExistException(bankAccountNumber));
-        }
-
-        public async Task<IEnumerable<BankAccountDto>> GetAllBankAccountsByUserIdAsync(Guid userId)
-        {
-            if (!await _userRepository.UserAlreadyExistsByIdAsync(userId))
+            if (!await _userRepository.AlreadyExistsAsync(userId))
             {
                 throw new UserNotFoundException(userId.ToString());
             }
-            var userBankAccounts = await _bankAccountRepository.GetUserAllBankAccountsAsync(userId);
-            if (userBankAccounts.IsNullOrEmpty())
+
+            return _mapper.Map<BankAccountDto>(await _bankAccountRepository.GetAsync(userId, bankAccountNumber)
+                ?? throw new UserBankAccountDoesNotExistException(bankAccountNumber));
+        }
+
+        public async Task<IEnumerable<BankAccountDto>> GetUserAllBankAccountsAsync(Guid userId)
+        {
+            if (!await _userRepository.AlreadyExistsAsync(userId))
             {
-                throw new UserBankAccountDoesNotExistException(userId.ToString());
+                throw new UserNotFoundException(userId.ToString());
             }
+
+            var userBankAccounts = await _bankAccountRepository.GetAsync(userId) 
+                ?? Enumerable.Empty<BankAccount>();
+
             return _mapper.Map<IEnumerable<BankAccountDto>>(userBankAccounts);
+        }
+
+        public async Task DeleteUserBankAccountAsync(Guid userId, string bankAccountNumber)
+        {
+            if (!await _userRepository.AlreadyExistsAsync(userId))
+            {
+                throw new UserNotFoundException(userId.ToString());
+            }
+
+            var bankAccountToDelete = await _bankAccountRepository.GetAsync(userId, bankAccountNumber, true)
+                            ?? throw new UserBankAccountDoesNotExistException($"{userId} : {bankAccountNumber}");
+            
+            if (await _bankAccountRepository.AlreadyDeletedAsync(bankAccountNumber))
+            {
+                throw new UserBankAccountAlreadyDeletedException(bankAccountNumber);
+            }
+
+            bankAccountToDelete.IsDeleted = true;
+            await _userRepository.SaveChangesAsync();
         }
 
         private async Task<string> GenerateBankAccountNumberAsync()
@@ -82,7 +92,7 @@ namespace BankSimulation.Infrastructure.Services
             do 
             {
                 generatedBankAccountNumber = _random.Next(100_000_000, 999_999_999).ToString();
-            } while (await _bankAccountRepository.BankAccountNumberAlreadyExistsAsync(generatedBankAccountNumber));
+            } while (await _bankAccountRepository.AlreadyExistsAsync(generatedBankAccountNumber));
 
             return generatedBankAccountNumber;
         }

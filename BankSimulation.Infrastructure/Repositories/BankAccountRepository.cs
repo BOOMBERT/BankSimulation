@@ -14,21 +14,13 @@ namespace BankSimulation.Infrastructure.Repositories
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        public async Task AddBankAccountAsync(BankAccount bankAccount)
+        public async Task AddAsync(BankAccount bankAccount)
         {
             await _context.BankAccounts
                 .AddAsync(bankAccount);
         }
 
-        public async Task<BankAccount?> GetBankAccountAsync(string bankAccountNumber)
-        {
-            return await _context.BankAccounts
-                .AsNoTracking()
-                .Where(ba => ba.Number == bankAccountNumber)
-                .SingleOrDefaultAsync();
-        }
-
-        public async Task<IEnumerable<BankAccount>> GetUserAllBankAccountsAsync(Guid userId)
+        public async Task<IEnumerable<BankAccount>> GetAsync(Guid userId)
         {
             return await _context.BankAccounts
                 .AsNoTracking()
@@ -36,27 +28,30 @@ namespace BankSimulation.Infrastructure.Repositories
                 .ToArrayAsync();
         }
 
-        public async Task<bool> BankAccountNumberAlreadyExistsAsync(string bankAccountNumber)
+        public async Task<BankAccount?> GetAsync(Guid userId, string bankAccountNumber, bool trackChanges = false)
+        {
+            var query = _context.BankAccounts
+                .Where(ba => ba.UserId == userId && ba.Number == bankAccountNumber);
+
+            if (!trackChanges) { query = query.AsNoTracking(); }
+
+            return await query.SingleOrDefaultAsync();
+        }
+
+        public async Task<bool> AlreadyExistsAsync(string bankAccountNumber)
         {
             return await _context.BankAccounts
                 .AsNoTracking()
                 .AnyAsync(ba => ba.Number == bankAccountNumber);
         }
 
-        public async Task<bool> BankAccountAlreadyDeletedAsync(string bankAccountNumber)
+        public async Task<bool> AlreadyDeletedAsync(string bankAccountNumber)
         {
             return await _context.BankAccounts
                 .AsNoTracking()
                 .Where(ba => ba.Number == bankAccountNumber)
                 .Select(ba => ba.IsDeleted)
                 .SingleOrDefaultAsync();
-        }
-
-        public async Task DeleteBankAccountAsync(string bankAccountNumber)
-        {
-            await _context.BankAccounts
-                .Where(ba => ba.Number == bankAccountNumber)
-                .ExecuteUpdateAsync(ba => ba.SetProperty(x => x.IsDeleted, true));
         }
     }
 }

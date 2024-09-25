@@ -10,11 +10,11 @@ namespace BankSimulation.API.Controllers.Admin
 {
     [Route("api/admin/users")]
     [ApiController]
-    public class AdminUsersController : ControllerBase
+    public class AdminUserController : ControllerBase
     {
         private readonly IAdminUserService _adminUserService;
 
-        public AdminUsersController(IAdminUserService adminUserService)
+        public AdminUserController(IAdminUserService adminUserService)
         {
             _adminUserService = adminUserService ?? throw new ArgumentNullException(nameof(adminUserService));
         }

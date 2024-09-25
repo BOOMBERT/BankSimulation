@@ -102,7 +102,7 @@ namespace BankSimulation.Infrastructure.Repositories
                 .AnyAsync(u => u.Email == email);
         }
 
-        public async Task<bool> UserAlreadyExistsByIdAsync(Guid userId)
+        public async Task<bool> AlreadyExistsAsync(Guid userId)
         {
             return await _context.Users
                 .AsNoTracking()

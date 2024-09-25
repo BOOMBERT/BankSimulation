@@ -28,7 +28,7 @@ namespace BankSimulation.Infrastructure.Services
 
         public async Task<bool> DeleteUserAsync(Guid userId)
         {
-            if (!await _userRepository.UserAlreadyExistsByIdAsync(userId))
+            if (!await _userRepository.AlreadyExistsAsync(userId))
             {
                 throw new UserNotFoundException(userId.ToString());
             }

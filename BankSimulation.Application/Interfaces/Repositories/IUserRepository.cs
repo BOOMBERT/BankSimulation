@@ -15,7 +15,7 @@ namespace BankSimulation.Application.Interfaces.Repositories
         Task<IList<AccessRole>?> GetUserAccessRolesAsync(Guid userId);
         Task<string?> GetUserEmailByIdAsync(Guid userId);
         Task<bool> UserAlreadyDeletedByIdAsync(Guid userId);
-        Task<bool> UserAlreadyExistsByIdAsync(Guid userId);
+        Task<bool> AlreadyExistsAsync(Guid userId);
         Task<bool> EmailAlreadyExistsAsync(string email);
         Task UpdateUserByIdAsync(Guid userId, AdminUpdateUserDto updateUserDto);
         Task UpdateUserPasswordAsync(Guid userId, string newPassword);

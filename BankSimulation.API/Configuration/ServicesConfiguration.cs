@@ -61,6 +61,8 @@ namespace BankSimulation.API.Configuration
             services.AddScoped<IAdminBankAccountService, AdminBankAccountService>();
 
             services.AddScoped<IBankAccountRepository, BankAccountRepository>();
+
+            services.AddScoped<IBankAccountService, BankAccountService>();
         }
     }
 }

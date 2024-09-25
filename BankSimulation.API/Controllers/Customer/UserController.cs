@@ -9,12 +9,12 @@ namespace BankSimulation.API.Controllers.Customer
 {
     [Route("api/users")]
     [ApiController]
-    public class UsersController : ControllerBase
+    public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
         private readonly IUserAuthService _userAuthService;
 
-        public UsersController(IUserService userService, IUserAuthService userAuthService)
+        public UserController(IUserService userService, IUserAuthService userAuthService)
         {
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _userAuthService = userAuthService ?? throw new ArgumentNullException(nameof(userAuthService));

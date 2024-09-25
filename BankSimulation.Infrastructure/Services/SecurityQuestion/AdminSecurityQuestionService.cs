@@ -54,7 +54,7 @@ namespace BankSimulation.Infrastructure.Services
 
         public async Task<string> GetSecurityQuestionByUserIdAsync(Guid userId)
         {
-            if (!await _userRepository.UserAlreadyExistsByIdAsync(userId))
+            if (!await _userRepository.AlreadyExistsAsync(userId))
             {
                 throw new UserNotFoundException(userId.ToString());
             }
@@ -65,7 +65,7 @@ namespace BankSimulation.Infrastructure.Services
 
         private async Task EnsureUserHasNoSecurityQuestionAsync(Guid userId)
         {
-            if (!await _userRepository.UserAlreadyExistsByIdAsync(userId))
+            if (!await _userRepository.AlreadyExistsAsync(userId))
             {
                 throw new UserNotFoundException(userId.ToString());
             }
@@ -77,7 +77,7 @@ namespace BankSimulation.Infrastructure.Services
 
         private async Task EnsureUserHasSecurityQuestionAsync(Guid userId)
         {
-            if (!await _userRepository.UserAlreadyExistsByIdAsync(userId))
+            if (!await _userRepository.AlreadyExistsAsync(userId))
             {
                 throw new UserNotFoundException(userId.ToString());
             }

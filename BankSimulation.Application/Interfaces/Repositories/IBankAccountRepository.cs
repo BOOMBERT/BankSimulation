@@ -4,11 +4,10 @@ namespace BankSimulation.Application.Interfaces.Repositories
 {
     public interface IBankAccountRepository
     {
-        Task AddBankAccountAsync(BankAccount bankAccount);
-        Task<BankAccount?> GetBankAccountAsync(string bankAccountNumber);
-        Task<IEnumerable<BankAccount>> GetUserAllBankAccountsAsync(Guid userId);
-        Task<bool> BankAccountNumberAlreadyExistsAsync(string bankAccountNumber);
-        Task<bool> BankAccountAlreadyDeletedAsync(string bankAccountNumber);
-        Task DeleteBankAccountAsync(string bankAccountNumber);
+        Task AddAsync(BankAccount bankAccount);
+        Task<IEnumerable<BankAccount>> GetAsync(Guid userId);
+        Task<BankAccount?> GetAsync(Guid userId, string bankAccountNumber, bool trackChanges = false);
+        Task<bool> AlreadyExistsAsync(string bankAccountNumber);
+        Task<bool> AlreadyDeletedAsync(string bankAccountNumber);
     }
 }
