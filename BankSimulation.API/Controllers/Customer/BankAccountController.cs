@@ -1,4 +1,4 @@
-﻿using BankSimulation.Application.Dtos;
+﻿using BankSimulation.Application.Dtos.BankAccount;
 using BankSimulation.Application.Dtos.Responses;
 using BankSimulation.Application.Interfaces.Services;
 using BankSimulation.Domain.Enums;

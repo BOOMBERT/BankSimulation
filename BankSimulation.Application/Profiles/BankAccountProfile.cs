@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using BankSimulation.Application.Dtos;
+using BankSimulation.Application.Dtos.BankAccount;
 using BankSimulation.Domain.Entities;
 
 namespace BankSimulation.Application.Profiles

@@ -1,11 +1,11 @@
-﻿using BankSimulation.Application.Dtos;
+﻿using BankSimulation.Application.Dtos.SecurityQuestion;
 using FluentValidation;
 
-namespace BankSimulation.Application.Validators.User
+namespace BankSimulation.Application.Validators.SecurityQuestion
 {
-    public sealed class SecurityQuestionDtoValidator : AbstractValidator<SecurityQuestionDto>
+    public sealed class CreateSecurityQuestionDtoValidator : AbstractValidator<CreateSecurityQuestionDto>
     {
-        public SecurityQuestionDtoValidator()
+        public CreateSecurityQuestionDtoValidator()
         {
             RuleFor(u => u.Question)
                 .NotEmpty().WithMessage("Question is required.")

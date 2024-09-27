@@ -1,4 +1,4 @@
-﻿using BankSimulation.Application.Dtos;
+﻿using BankSimulation.Application.Dtos.BankAccount;
 using BankSimulation.Application.Dtos.Responses;
 using BankSimulation.Application.Interfaces.Services;
 using BankSimulation.Domain.Enums;
@@ -25,7 +25,7 @@ namespace BankSimulation.API.Controllers.Admin
         public async Task<ActionResult<BankAccountDto>> OpenBankAccount(Guid userId, Currency currency)
         {
             var createdBankAccount = await _adminBankAccountService.CreateUserBankAccountAsync(userId, currency);
-            return CreatedAtRoute("GetUserSpecificBankAccount", new { userId, accountNumber = createdBankAccount.Number }, createdBankAccount);
+            return CreatedAtAction("GetUserSpecificBankAccount", new { userId, accountNumber = createdBankAccount.Number }, createdBankAccount);
         }
 
         [HttpGet, Authorize(Roles = nameof(AccessRole.Admin))]
@@ -37,7 +37,7 @@ namespace BankSimulation.API.Controllers.Admin
             return Ok(await _adminBankAccountService.GetUserAllBankAccountsAsync(userId));
         }
 
-        [HttpGet("{accountNumber}", Name = "GetUserSpecificBankAccount"), Authorize(Roles = nameof(AccessRole.Admin))]
+        [HttpGet("{accountNumber}"), Authorize(Roles = nameof(AccessRole.Admin))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

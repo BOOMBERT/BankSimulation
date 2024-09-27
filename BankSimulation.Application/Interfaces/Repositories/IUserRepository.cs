@@ -18,7 +18,7 @@ namespace BankSimulation.Application.Interfaces.Repositories
         Task<bool> AlreadyExistsAsync(Guid userId);
         Task<bool> EmailAlreadyExistsAsync(string email);
         Task UpdateUserByIdAsync(Guid userId, AdminUpdateUserDto updateUserDto);
-        Task UpdateUserPasswordAsync(Guid userId, string newPassword);
+        Task UpdatePasswordAsync(Guid userId, string newPassword);
         Task UpdateUserEmailAsync(Guid userId, string newEmail);
         Task DeleteUserByIdAsync(Guid userId);
         Task<bool> SaveChangesAsync();

@@ -28,7 +28,7 @@ namespace BankSimulation.API.Controllers
         public async Task<ActionResult<UserDto>> RegisterUser(CreateUserDto userToCreate)
         {
             var user = await _userService.CreateUserAsync(userToCreate);
-            return CreatedAtAction("GetUserById", "AdminUsers", new { userId = user.Id }, user);
+            return CreatedAtAction("GetUserById", "AdminUser", new { userId = user.Id }, user);
         }
 
         [HttpPost("login")]

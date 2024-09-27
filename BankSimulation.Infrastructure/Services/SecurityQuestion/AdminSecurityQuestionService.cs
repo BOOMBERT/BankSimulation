@@ -1,4 +1,4 @@
-﻿using BankSimulation.Application.Dtos;
+﻿using BankSimulation.Application.Dtos.SecurityQuestion;
 using BankSimulation.Application.Exceptions.SecurityQuestion;
 using BankSimulation.Application.Exceptions.User;
 using BankSimulation.Application.Interfaces.Repositories;
@@ -19,72 +19,70 @@ namespace BankSimulation.Infrastructure.Services
             _securityQuestionRepository = securityQuestionRepository ?? throw new ArgumentNullException(nameof(securityQuestionRepository));
         }
 
-        public async Task<bool> SetUserSecurityQuestionAsync(Guid userId, SecurityQuestionDto securityQuestionDto)
+        public async Task<SecurityQuestionOutDto> SetUserSecurityQuestionAsync(Guid userId, CreateSecurityQuestionDto createSecurityQuestionDto)
         {
-            await EnsureUserHasNoSecurityQuestionAsync(userId);
-
-            var securityQuestion = new SecurityQuestion
-            {
-                Question = securityQuestionDto.Question,
-                Answer = SecurityService.HashText(securityQuestionDto.Answer.ToUpper()),
-                UserId = userId
-            };
-
-            await _securityQuestionRepository.AddSecurityQuestionAsync(securityQuestion);
-            return await _userRepository.SaveChangesAsync();
-        }
-
-        public async Task<bool> ChangeSecurityQuestionByUserIdAsync(Guid userId, SecurityQuestionDto securityQuestionDto)
-        {
-            await EnsureUserHasSecurityQuestionAsync(userId);
-            
-            var updatedSecurityQuestion = new SecurityQuestionDto(securityQuestionDto.Question, SecurityService.HashText(securityQuestionDto.Answer.ToUpper()));
-            await _securityQuestionRepository.UpdateSecurityQuestionByUserIdAsync(userId, updatedSecurityQuestion);
-
-            return await _userRepository.SaveChangesAsync();
-        }
-
-        public async Task<bool> DeleteSecurityQuestionByUserIdAsync(Guid userId)
-        {
-            await EnsureUserHasSecurityQuestionAsync(userId);
-            await _securityQuestionRepository.DeleteSecurityQuestionByUserIdAsync(userId);
-
-            return await _userRepository.SaveChangesAsync();
-        }
-
-        public async Task<string> GetSecurityQuestionByUserIdAsync(Guid userId)
-        {
-            if (!await _userRepository.AlreadyExistsAsync(userId))
-            {
-                throw new UserNotFoundException(userId.ToString());
-            }
-
-            return await _securityQuestionRepository.GetOnlyQuestionByUserIdAsync(userId)
-                ?? throw new UserSecurityQuestionDoesNotExistException(userId.ToString());
-        }
-
-        private async Task EnsureUserHasNoSecurityQuestionAsync(Guid userId)
-        {
-            if (!await _userRepository.AlreadyExistsAsync(userId))
-            {
-                throw new UserNotFoundException(userId.ToString());
-            }
-            if (await _securityQuestionRepository.SecurityQuestionAlreadyExistsByUserIdAsync(userId))
+            if (await UserHasSecurityQuestionAsync(userId))
             {
                 throw new UserSecurityQuestionAlreadyExistException(userId.ToString());
             }
+
+            var createdSecurityQuestion = new SecurityQuestion
+            {
+                Question = createSecurityQuestionDto.Question,
+                Answer = SecurityService.HashText(createSecurityQuestionDto.Answer.ToUpper()),
+                UserId = userId
+            };
+
+            await _securityQuestionRepository.AddAsync(createdSecurityQuestion);
+            await _userRepository.SaveChangesAsync();
+            
+            return new SecurityQuestionOutDto(createdSecurityQuestion.Id, createdSecurityQuestion.Question);
         }
 
-        private async Task EnsureUserHasSecurityQuestionAsync(Guid userId)
+        public async Task<SecurityQuestionOutDto> GetSecurityQuestionByUserIdAsync(Guid userId)
         {
             if (!await _userRepository.AlreadyExistsAsync(userId))
             {
                 throw new UserNotFoundException(userId.ToString());
             }
-            if (!await _securityQuestionRepository.SecurityQuestionAlreadyExistsByUserIdAsync(userId))
+
+            return await _securityQuestionRepository.GetQuestionAsync(userId)
+                ?? throw new UserSecurityQuestionDoesNotExistException(userId.ToString());
+        }
+
+        public async Task ChangeSecurityQuestionByUserIdAsync(Guid userId, CreateSecurityQuestionDto createSecurityQuestionDto)
+        {
+            if (!await UserHasSecurityQuestionAsync(userId))
             {
                 throw new UserSecurityQuestionDoesNotExistException(userId.ToString());
+            };
+            
+            var newSecurityQuestion = new CreateSecurityQuestionDto(
+                createSecurityQuestionDto.Question, 
+                SecurityService.HashText(createSecurityQuestionDto.Answer.ToUpper()));
+
+            await _securityQuestionRepository.UpdateAsync(userId, newSecurityQuestion);
+            await _userRepository.SaveChangesAsync();
+        }
+
+        public async Task DeleteSecurityQuestionByUserIdAsync(Guid userId)
+        {
+            if (!await UserHasSecurityQuestionAsync(userId))
+            {
+                throw new UserSecurityQuestionDoesNotExistException(userId.ToString());
+            }; 
+            
+            await _securityQuestionRepository.DeleteAsync(userId);
+            await _userRepository.SaveChangesAsync();
+        }
+
+        private async Task<bool> UserHasSecurityQuestionAsync(Guid userId)
+        {
+            if (!await _userRepository.AlreadyExistsAsync(userId))
+            {
+                throw new UserNotFoundException(userId.ToString());
             }
+            return await _securityQuestionRepository.AlreadyExistsAsync(userId);
         }
     }
 }

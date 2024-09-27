@@ -61,7 +61,7 @@ namespace BankSimulation.Infrastructure.Services
                 throw new IncorrectNewPasswordException(userId.ToString());
             }
 
-            await _userRepository.UpdateUserPasswordAsync(userId, SecurityService.HashText(newPassword));
+            await _userRepository.UpdatePasswordAsync(userId, SecurityService.HashText(newPassword));
             return await _userRepository.SaveChangesAsync();
         }
 

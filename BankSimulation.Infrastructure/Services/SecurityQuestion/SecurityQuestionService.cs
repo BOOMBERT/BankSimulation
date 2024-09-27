@@ -1,4 +1,5 @@
-﻿using BankSimulation.Application.Exceptions.SecurityQuestion;
+﻿using BankSimulation.Application.Dtos.SecurityQuestion;
+using BankSimulation.Application.Exceptions.SecurityQuestion;
 using BankSimulation.Application.Interfaces.Repositories;
 using BankSimulation.Application.Interfaces.Services;
 using BankSimulation.Infrastructure.Services.Utils;
@@ -18,17 +19,17 @@ namespace BankSimulation.Infrastructure.Services
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
         }
 
-        public async Task<string> GetOnlyQuestionByAccessTokenAsync(string accessToken)
+        public async Task<SecurityQuestionOutDto> GetOnlyQuestionByAccessTokenAsync(string accessToken)
         {
             var userId = _userAuthService.GetUserIdFromJwt(accessToken);
-            return await _securityQuestionRepository.GetOnlyQuestionByUserIdAsync(userId)
+            return await _securityQuestionRepository.GetQuestionAsync(userId)
                 ?? throw new UserSecurityQuestionDoesNotExistException(userId.ToString());
         }
 
-        public async Task<bool> UpdateUserPasswordBySecurityQuestionAnswerAsync(string accessToken, string answer, string newPassword)
+        public async Task UpdateUserPasswordBySecurityQuestionAnswerAsync(string accessToken, string answer, string newPassword)
         {
             var userId = _userAuthService.GetUserIdFromJwt(accessToken);
-            var securityQuestionAnswer = await _securityQuestionRepository.GetOnlyAnswerByUserIdAsync(userId)
+            var securityQuestionAnswer = await _securityQuestionRepository.GetAnswerAsync(userId)
                 ?? throw new UserSecurityQuestionDoesNotExistException(userId.ToString());
 
             if (!SecurityService.VerifyHashedText(answer.ToUpper(), securityQuestionAnswer))
@@ -36,8 +37,8 @@ namespace BankSimulation.Infrastructure.Services
                 throw new UserSecurityQuestionIncorrectAnswerException(userId.ToString());
             }
 
-            await _userRepository.UpdateUserPasswordAsync(userId, SecurityService.HashText(newPassword));
-            return await _userRepository.SaveChangesAsync();
+            await _userRepository.UpdatePasswordAsync(userId, SecurityService.HashText(newPassword));
+            await _userRepository.SaveChangesAsync();
         }
     }
 }

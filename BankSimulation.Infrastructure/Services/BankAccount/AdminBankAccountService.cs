@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using BankSimulation.Application.Dtos;
+using BankSimulation.Application.Dtos.BankAccount;
 using BankSimulation.Application.Exceptions.BankAccount;
 using BankSimulation.Application.Exceptions.User;
 using BankSimulation.Application.Interfaces.Repositories;

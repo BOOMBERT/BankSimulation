@@ -1,5 +1,5 @@
-﻿using BankSimulation.Application.Dtos;
-using BankSimulation.Application.Dtos.Responses;
+﻿using BankSimulation.Application.Dtos.Responses;
+using BankSimulation.Application.Dtos.SecurityQuestion;
 using BankSimulation.Application.Interfaces.Services;
 using BankSimulation.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
@@ -19,31 +19,14 @@ namespace BankSimulation.API.Controllers.Admin
         }
 
         [HttpPost("{userId}/security-question"), Authorize(Roles = nameof(AccessRole.Admin))]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ErrorDetails))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<bool>> SetUserSecurityQuestion(Guid userId, SecurityQuestionDto securityQuestionDto)
+        public async Task<ActionResult<bool>> CreateUserSecurityQuestion(Guid userId, CreateSecurityQuestionDto createSecurityQuestionDto)
         {
-            return Ok(await _adminSecurityQuestionService.SetUserSecurityQuestionAsync(userId, securityQuestionDto));
-        }
-
-        [HttpPut("{userId}/security-question"), Authorize(Roles = nameof(AccessRole.Admin))]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<bool>> UpdateUserSecurityQuestion(Guid userId, SecurityQuestionDto securityQuestionDto)
-        {
-            return Ok(await _adminSecurityQuestionService.ChangeSecurityQuestionByUserIdAsync(userId, securityQuestionDto));
-        }
-
-        [HttpDelete("{userId}/security-question"), Authorize(Roles = nameof(AccessRole.Admin))]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<bool>> DeleteUserSecurityQuestion(Guid userId)
-        {
-            return Ok(await _adminSecurityQuestionService.DeleteSecurityQuestionByUserIdAsync(userId));
+            var createdUserSecurityQuestion = await _adminSecurityQuestionService.SetUserSecurityQuestionAsync(userId, createSecurityQuestionDto);
+            return CreatedAtAction("GetUserSecurityQuestion", new { userId }, createdUserSecurityQuestion);
         }
 
         [HttpGet("{userId}/security-question"), Authorize(Roles = nameof(AccessRole.Admin))]
@@ -53,6 +36,26 @@ namespace BankSimulation.API.Controllers.Admin
         public async Task<ActionResult<string>> GetUserSecurityQuestion(Guid userId)
         {
             return Ok(await _adminSecurityQuestionService.GetSecurityQuestionByUserIdAsync(userId));
+        }
+
+        [HttpPut("{userId}/security-question"), Authorize(Roles = nameof(AccessRole.Admin))]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> UpdateUserSecurityQuestion(Guid userId, CreateSecurityQuestionDto createSecurityQuestionDto)
+        {
+            await _adminSecurityQuestionService.ChangeSecurityQuestionByUserIdAsync(userId, createSecurityQuestionDto);
+            return NoContent();
+        }
+
+        [HttpDelete("{userId}/security-question"), Authorize(Roles = nameof(AccessRole.Admin))]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<bool>> DeleteUserSecurityQuestion(Guid userId)
+        {
+            await _adminSecurityQuestionService.DeleteSecurityQuestionByUserIdAsync(userId);
+            return NoContent();
         }
     }
 }

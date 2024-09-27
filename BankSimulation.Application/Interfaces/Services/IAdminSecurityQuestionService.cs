@@ -1,12 +1,12 @@
-﻿using BankSimulation.Application.Dtos;
+﻿using BankSimulation.Application.Dtos.SecurityQuestion;
 
 namespace BankSimulation.Application.Interfaces.Services
 {
     public interface IAdminSecurityQuestionService
     {
-        Task<bool> SetUserSecurityQuestionAsync(Guid userId, SecurityQuestionDto securityQuestionDto);
-        Task<bool> ChangeSecurityQuestionByUserIdAsync(Guid userId, SecurityQuestionDto securityQuestionDto);
-        Task<bool> DeleteSecurityQuestionByUserIdAsync(Guid userId);
-        Task<string> GetSecurityQuestionByUserIdAsync(Guid userId);
+        Task<SecurityQuestionOutDto> SetUserSecurityQuestionAsync(Guid userId, CreateSecurityQuestionDto createSecurityQuestionDto);
+        Task<SecurityQuestionOutDto> GetSecurityQuestionByUserIdAsync(Guid userId);
+        Task ChangeSecurityQuestionByUserIdAsync(Guid userId, CreateSecurityQuestionDto createSecurityQuestionDto);
+        Task DeleteSecurityQuestionByUserIdAsync(Guid userId);
     }
 }

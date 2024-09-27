@@ -120,7 +120,7 @@ namespace BankSimulation.Infrastructure.Repositories
                 .SetProperty(x => x.Password, updateUserDto.Password));
         }
 
-        public async Task UpdateUserPasswordAsync(Guid userId, string newPassword)
+        public async Task UpdatePasswordAsync(Guid userId, string newPassword)
         {
             await _context.Users
                 .Where(u => u.Id == userId)

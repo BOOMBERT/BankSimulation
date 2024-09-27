@@ -1,4 +1,4 @@
-﻿using BankSimulation.Application.Dtos;
+﻿using BankSimulation.Application.Dtos.BankAccount;
 
 namespace BankSimulation.Application.Interfaces.Services
 {
