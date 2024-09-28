@@ -26,25 +26,24 @@ namespace BankSimulation.Infrastructure.Services
 
         public async Task<(AccessTokenDto, RefreshTokenDto)> AuthenticateUserAsync(LoginUserDto userToAuth)
         {
-            var user = await _userRepository.GetUserAuthDataByEmailAsync(userToAuth.Email);
+            var userAuthData = await _userRepository.GetAuthDataAsync(userToAuth.Email);
 
-            if (user == null || !SecurityService.VerifyHashedText(userToAuth.Password, user.Password))
+            if (userAuthData == null || !SecurityService.VerifyHashedText(userToAuth.Password, userAuthData.Password))
             {
                 throw new InvalidCredentialsException(userToAuth.Email);
             }
 
-            if (user.IsDeleted) { throw new UserAlreadyDeletedException(user.Id.ToString()); }
+            if (userAuthData.IsDeleted) { throw new UserAlreadyDeletedException(userAuthData.Id.ToString()); }
 
-            if (await _refreshTokenRepository.RefreshTokenAlreadyExistsByUserIdAsync(user.Id))
+            if (await _refreshTokenRepository.AlreadyExistsAsync(userAuthData.Id))
             {
-                await _refreshTokenRepository.DeleteRefreshTokenByUserIdAsync(user.Id);
+                await _refreshTokenRepository.DeleteAsync(userAuthData.Id);
             }
-            var newRefreshToken = await CreateUserRefreshTokenAsync(user.Id);
+            var newRefreshToken = await CreateUserRefreshTokenAsync(userAuthData.Id);
 
             return (
-                new AccessTokenDto(_authService.GenerateAccessToken(newRefreshToken.UserId, user.AccessRoles)),
-                new RefreshTokenDto(newRefreshToken.Token, newRefreshToken.ExpirationDate)
-            );
+                new AccessTokenDto(_authService.GenerateAccessToken(newRefreshToken.UserId, userAuthData.AccessRoles)),
+                new RefreshTokenDto(newRefreshToken.Token, newRefreshToken.ExpirationDate));
         }
 
         public async Task<(AccessTokenDto, RefreshTokenDto)> RefreshUserTokensAsync(string accessToken, string? refreshToken)
@@ -52,22 +51,21 @@ namespace BankSimulation.Infrastructure.Services
             if (string.IsNullOrEmpty(refreshToken)) { throw new InvalidTokenFormatException(refreshToken); }
 
             var userIdFromAccessToken = GetUserIdFromJwt(accessToken);
-            var storedRefreshToken = await _refreshTokenRepository.GetRefreshTokenByUserIdAsync(userIdFromAccessToken);
+            var storedRefreshToken = await _refreshTokenRepository.GetAsync(userIdFromAccessToken);
 
             if (storedRefreshToken == null || storedRefreshToken.Token != refreshToken || storedRefreshToken.ExpirationDate <= DateTime.UtcNow)
             {
                 throw new InvalidRefreshTokenException(refreshToken);
             }
 
-            await _refreshTokenRepository.DeleteRefreshTokenByUserIdAsync(userIdFromAccessToken);
+            await _refreshTokenRepository.DeleteAsync(userIdFromAccessToken);
             var newRefreshToken = await CreateUserRefreshTokenAsync(userIdFromAccessToken);
 
-            var userRoles = await _userRepository.GetUserAccessRolesAsync(newRefreshToken.UserId) ?? Enumerable.Empty<AccessRole>();
+            var userRoles = await _userRepository.GetAccessRolesAsync(newRefreshToken.UserId) ?? Enumerable.Empty<AccessRole>();
 
             return (
                 new AccessTokenDto(_authService.GenerateAccessToken(newRefreshToken.UserId, userRoles)),
-                new RefreshTokenDto(newRefreshToken.Token, newRefreshToken.ExpirationDate)
-                );
+                new RefreshTokenDto(newRefreshToken.Token, newRefreshToken.ExpirationDate));
         }
 
         public Guid GetUserIdFromJwt(string token)
@@ -82,7 +80,7 @@ namespace BankSimulation.Infrastructure.Services
             var refreshToken = _authService.GenerateRefreshToken();
             refreshToken.UserId = userId;
 
-            await _refreshTokenRepository.AddRefreshTokenAsync(refreshToken);
+            await _refreshTokenRepository.AddAsync(refreshToken);
             await _userRepository.SaveChangesAsync();
 
             return refreshToken;

@@ -24,7 +24,7 @@ namespace BankSimulation.Infrastructure.Services
 
         public async Task<UserDto> CreateUserAsync(CreateUserDto user)
         {
-            if (await _userRepository.EmailAlreadyExistsAsync(user.Email))
+            if (await _userRepository.AlreadyExistsAsync(user.Email))
             {
                 throw new EmailAlreadyRegisteredException(user.Email);
             }
@@ -33,7 +33,7 @@ namespace BankSimulation.Infrastructure.Services
             userEntity.Password = SecurityService.HashText(user.Password);
             userEntity.AccessRoles.Add(AccessRole.Customer);
 
-            await _userRepository.AddUserAsync(userEntity);
+            await _userRepository.AddAsync(userEntity);
             await _userRepository.SaveChangesAsync();
 
             return _mapper.Map<UserDto>(userEntity);
@@ -69,7 +69,7 @@ namespace BankSimulation.Infrastructure.Services
         {
             if (currentEmail == newEmail) { throw new IncorrectNewEmailException(newEmail); }
 
-            if (await _userRepository.EmailAlreadyExistsAsync(newEmail))
+            if (await _userRepository.AlreadyExistsAsync(newEmail))
             {
                 throw new EmailAlreadyRegisteredException(newEmail);
             }

@@ -20,7 +20,7 @@ namespace BankSimulation.Infrastructure.Repositories
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
-        public async Task AddUserAsync(User user)
+        public async Task AddAsync(User user)
         {
             await _context.Users
                 .AddAsync(user);
@@ -59,7 +59,7 @@ namespace BankSimulation.Infrastructure.Repositories
                 .SingleOrDefaultAsync();
         }
 
-        public async Task<AuthUserDto?> GetUserAuthDataByEmailAsync(string email)
+        public async Task<AuthUserDto?> GetAuthDataAsync(string email)
         {
             return await _context.Users
                 .AsNoTracking()
@@ -68,7 +68,7 @@ namespace BankSimulation.Infrastructure.Repositories
                 .SingleOrDefaultAsync();
         }
 
-        public async Task<IList<AccessRole>?> GetUserAccessRolesAsync(Guid userId)
+        public async Task<IList<AccessRole>?> GetAccessRolesAsync(Guid userId)
         {
             return await _context.Users
                 .AsNoTracking()
@@ -95,7 +95,7 @@ namespace BankSimulation.Infrastructure.Repositories
                 .SingleOrDefaultAsync();
         }
 
-        public async Task<bool> EmailAlreadyExistsAsync(string email)
+        public async Task<bool> AlreadyExistsAsync(string email)
         {
             return await _context.Users
                 .AsNoTracking()

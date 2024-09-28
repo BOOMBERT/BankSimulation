@@ -15,13 +15,13 @@ namespace BankSimulation.Infrastructure.Repositories
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        public async Task AddRefreshTokenAsync(RefreshToken refreshToken)
+        public async Task AddAsync(RefreshToken refreshToken)
         {
             await _context.RefreshTokens
                 .AddAsync(refreshToken);
         }
 
-        public async Task<RefreshTokenDto?> GetRefreshTokenByUserIdAsync(Guid userId)
+        public async Task<RefreshTokenDto?> GetAsync(Guid userId)
         {
             return await _context.RefreshTokens
                 .AsNoTracking()
@@ -30,18 +30,18 @@ namespace BankSimulation.Infrastructure.Repositories
                 .SingleOrDefaultAsync();
         }
 
-        public async Task<bool> RefreshTokenAlreadyExistsByUserIdAsync(Guid userId)
-        {
-            return await _context.RefreshTokens
-                .AsNoTracking()
-                .AnyAsync(rt => rt.UserId == userId);
-        }
-
-        public async Task DeleteRefreshTokenByUserIdAsync(Guid userId)
+        public async Task DeleteAsync(Guid userId)
         {
             await _context.RefreshTokens
                 .Where(rt => rt.UserId == userId)
                 .ExecuteDeleteAsync();
+        }
+
+        public async Task<bool> AlreadyExistsAsync(Guid userId)
+        {
+            return await _context.RefreshTokens
+                .AsNoTracking()
+                .AnyAsync(rt => rt.UserId == userId);
         }
     }
 }

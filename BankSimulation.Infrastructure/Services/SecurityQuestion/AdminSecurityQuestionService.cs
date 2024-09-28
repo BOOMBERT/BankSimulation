@@ -19,7 +19,7 @@ namespace BankSimulation.Infrastructure.Services
             _securityQuestionRepository = securityQuestionRepository ?? throw new ArgumentNullException(nameof(securityQuestionRepository));
         }
 
-        public async Task<SecurityQuestionOutDto> SetUserSecurityQuestionAsync(Guid userId, CreateSecurityQuestionDto createSecurityQuestionDto)
+        public async Task<SecurityQuestionOutDto> SetUserSecurityQuestionAsync(Guid userId, CreateSecurityQuestionDto securityQuestionToCreate)
         {
             if (await UserHasSecurityQuestionAsync(userId))
             {
@@ -28,8 +28,8 @@ namespace BankSimulation.Infrastructure.Services
 
             var createdSecurityQuestion = new SecurityQuestion
             {
-                Question = createSecurityQuestionDto.Question,
-                Answer = SecurityService.HashText(createSecurityQuestionDto.Answer.ToUpper()),
+                Question = securityQuestionToCreate.Question,
+                Answer = SecurityService.HashText(securityQuestionToCreate.Answer.ToUpper()),
                 UserId = userId
             };
 
@@ -50,7 +50,7 @@ namespace BankSimulation.Infrastructure.Services
                 ?? throw new UserSecurityQuestionDoesNotExistException(userId.ToString());
         }
 
-        public async Task ChangeSecurityQuestionByUserIdAsync(Guid userId, CreateSecurityQuestionDto createSecurityQuestionDto)
+        public async Task ChangeSecurityQuestionByUserIdAsync(Guid userId, CreateSecurityQuestionDto securityQuestionToCreate)
         {
             if (!await UserHasSecurityQuestionAsync(userId))
             {
@@ -58,8 +58,8 @@ namespace BankSimulation.Infrastructure.Services
             };
             
             var newSecurityQuestion = new CreateSecurityQuestionDto(
-                createSecurityQuestionDto.Question, 
-                SecurityService.HashText(createSecurityQuestionDto.Answer.ToUpper()));
+                securityQuestionToCreate.Question, 
+                SecurityService.HashText(securityQuestionToCreate.Answer.ToUpper()));
 
             await _securityQuestionRepository.UpdateAsync(userId, newSecurityQuestion);
             await _userRepository.SaveChangesAsync();

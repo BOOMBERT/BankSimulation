@@ -23,9 +23,9 @@ namespace BankSimulation.API.Controllers.Admin
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ErrorDetails))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<bool>> CreateUserSecurityQuestion(Guid userId, CreateSecurityQuestionDto createSecurityQuestionDto)
+        public async Task<ActionResult<bool>> CreateUserSecurityQuestion(Guid userId, CreateSecurityQuestionDto securityQuestionToCreate)
         {
-            var createdUserSecurityQuestion = await _adminSecurityQuestionService.SetUserSecurityQuestionAsync(userId, createSecurityQuestionDto);
+            var createdUserSecurityQuestion = await _adminSecurityQuestionService.SetUserSecurityQuestionAsync(userId, securityQuestionToCreate);
             return CreatedAtAction("GetUserSecurityQuestion", new { userId }, createdUserSecurityQuestion);
         }
 
@@ -42,9 +42,9 @@ namespace BankSimulation.API.Controllers.Admin
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> UpdateUserSecurityQuestion(Guid userId, CreateSecurityQuestionDto createSecurityQuestionDto)
+        public async Task<IActionResult> UpdateUserSecurityQuestion(Guid userId, CreateSecurityQuestionDto securityQuestionToCreate)
         {
-            await _adminSecurityQuestionService.ChangeSecurityQuestionByUserIdAsync(userId, createSecurityQuestionDto);
+            await _adminSecurityQuestionService.ChangeSecurityQuestionByUserIdAsync(userId, securityQuestionToCreate);
             return NoContent();
         }
 

@@ -50,8 +50,8 @@ namespace BankSimulation.Infrastructure.Services
                 claims.Add(new Claim(ClaimTypes.Role, role.ToString()));
             }
 
-            var key = new SymmetricSecurityKey
-                (Encoding.UTF8.GetBytes(_configuration["JwtSettings:Key"]!));
+            var key = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(_configuration["JwtSettings:Key"]!));
 
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 

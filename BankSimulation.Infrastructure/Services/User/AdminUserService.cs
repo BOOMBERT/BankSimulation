@@ -51,7 +51,7 @@ namespace BankSimulation.Infrastructure.Services
                 throw new IncorrectNewEmailException(updateUserDto.Email);
             }
 
-            if (await _userRepository.EmailAlreadyExistsAsync(updateUserDto.Email))
+            if (await _userRepository.AlreadyExistsAsync(updateUserDto.Email))
             { 
                 throw new EmailAlreadyRegisteredException(updateUserDto.Email);
             }
@@ -85,7 +85,7 @@ namespace BankSimulation.Infrastructure.Services
                     throw new IncorrectNewEmailException(userToPatch.Email);
                 }
 
-                if (await _userRepository.EmailAlreadyExistsAsync(emailOperation.value.ToString()!))
+                if (await _userRepository.AlreadyExistsAsync(emailOperation.value.ToString()!))
                 {
                     throw new EmailAlreadyRegisteredException(emailOperation.value.ToString()!);
                 }

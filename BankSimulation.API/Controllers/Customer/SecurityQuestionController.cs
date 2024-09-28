@@ -33,11 +33,11 @@ namespace BankSimulation.API.Controllers.Customer
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ErrorDetails))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> ChangePasswordBySecurityQuestion(ChangePasswordBySecurityQuestionDto changePasswordDto)
+        public async Task<IActionResult> ChangePasswordBySecurityQuestion(ChangePasswordBySecurityQuestionDto dataToChangePassword)
         {
             string accessTokenFromHeader = Request.Headers.Authorization.ToString().Split(' ')[1];
             await _securityQuestionService.UpdateUserPasswordBySecurityQuestionAnswerAsync(
-                accessTokenFromHeader, changePasswordDto.Answer, changePasswordDto.NewPassword);
+                accessTokenFromHeader, dataToChangePassword.Answer, dataToChangePassword.NewPassword);
             return NoContent();
         }
     }

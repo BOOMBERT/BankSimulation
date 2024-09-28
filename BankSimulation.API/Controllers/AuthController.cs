@@ -27,8 +27,8 @@ namespace BankSimulation.API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<UserDto>> RegisterUser(CreateUserDto userToCreate)
         {
-            var user = await _userService.CreateUserAsync(userToCreate);
-            return CreatedAtAction("GetUserById", "AdminUser", new { userId = user.Id }, user);
+            var createdUser = await _userService.CreateUserAsync(userToCreate);
+            return CreatedAtAction("GetUserById", "AdminUser", new { userId = createdUser.Id }, createdUser);
         }
 
         [HttpPost("login")]
@@ -36,7 +36,7 @@ namespace BankSimulation.API.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ErrorDetails))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ErrorDetails))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<AccessTokenDto>> Login(LoginUserDto userToLogin)
+        public async Task<ActionResult<AccessTokenDto>> LoginUser(LoginUserDto userToLogin)
         {
             var (accessToken, refreshToken) = await _userAuthService.AuthenticateUserAsync(userToLogin);
             SetRefreshToken(refreshToken);
