@@ -42,45 +42,49 @@ namespace BankSimulation.Infrastructure.Services
         public async Task<UserDto> GetUserViaAccessTokenAsync(string accessToken)
         {
             var userId = _userAuthService.GetUserIdFromJwt(accessToken);
-            return await _userRepository.GetUserDtoByIdAsync(userId) ?? throw new UserNotFoundException(userId.ToString());
+            return await _userRepository.GetDtoAsync(userId) ?? throw new UserNotFoundException(userId.ToString());
         }
 
-        public async Task<bool> UpdateUserPasswordAsync(string accessToken, string currentPassword, string newPassword)
+        public async Task UpdateUserPasswordAsync(string accessToken, string currentPassword, string newPassword)
         {
             if (currentPassword == newPassword) { throw new IncorrectNewPasswordException(); }
 
             var userId = _userAuthService.GetUserIdFromJwt(accessToken);
-            var userHashedPasswordFromDb = await _userRepository.GetUserPasswordByIdAsync(userId) ?? throw new UserNotFoundException(userId.ToString());
+            var userHashedPasswordFromDb = await _userRepository.GetPasswordAsync(userId) 
+                ?? throw new UserNotFoundException(userId.ToString());
 
             if (!SecurityService.VerifyHashedText(currentPassword, userHashedPasswordFromDb))
             {
                 throw new IncorrectCurrentPasswordException(userId.ToString());
             }
-            if (SecurityService.VerifyHashedText(newPassword, userHashedPasswordFromDb))
-            {
-                throw new IncorrectNewPasswordException(userId.ToString());
-            }
 
             await _userRepository.UpdatePasswordAsync(userId, SecurityService.HashText(newPassword));
-            return await _userRepository.SaveChangesAsync();
+            await _userRepository.SaveChangesAsync();
         }
 
-        public async Task<bool> UpdateUserEmailAsync(string accessToken, string currentEmail, string newEmail)
+        public async Task UpdateUserEmailAsync(string accessToken, string currentEmail, string newEmail)
         {
-            if (currentEmail == newEmail) { throw new IncorrectNewEmailException(newEmail); }
+            if (currentEmail == newEmail) 
+            { 
+                throw new IncorrectNewEmailException(newEmail); 
+            }
+
+            var userId = _userAuthService.GetUserIdFromJwt(accessToken);
+            var userEmailFromDb = await _userRepository.GetEmailAsync(userId) 
+                ?? throw new UserNotFoundException(userId.ToString());
+
+            if (currentEmail != userEmailFromDb) 
+            { 
+                throw new IncorrectCurrentEmailException(currentEmail); 
+            }
 
             if (await _userRepository.AlreadyExistsAsync(newEmail))
             {
                 throw new EmailAlreadyRegisteredException(newEmail);
             }
 
-            var userId = _userAuthService.GetUserIdFromJwt(accessToken);
-            var userEmailFromDb = await _userRepository.GetUserEmailByIdAsync(userId) ?? throw new UserNotFoundException(userId.ToString());
-
-            if (currentEmail != userEmailFromDb) { throw new IncorrectCurrentEmailException(currentEmail); }
-
             await _userRepository.UpdateUserEmailAsync(userId, newEmail);
-            return await _userRepository.SaveChangesAsync();
+            await _userRepository.SaveChangesAsync();
         }
     }
 }

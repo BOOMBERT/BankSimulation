@@ -26,13 +26,13 @@ namespace BankSimulation.Infrastructure.Repositories
                 .AddAsync(user);
         }
 
-        public async Task<User?> GetUserByIdAsync(Guid userId)
+        public async Task<User?> GetAsync(Guid userId)
         {
             return await _context.Users
                 .SingleOrDefaultAsync(u => u.Id == userId);
         }
 
-        public async Task<UserDto?> GetUserDtoByIdAsync(Guid userId)
+        public async Task<UserDto?> GetDtoAsync(Guid userId)
         {
             return await _context.Users
                 .AsNoTracking()
@@ -41,22 +41,13 @@ namespace BankSimulation.Infrastructure.Repositories
                 .SingleOrDefaultAsync();
         }
 
-        public async Task<UserDto?> GetUserDtoByEmailAsync(string email)
+        public async Task<UserDto?> GetDtoAsync(string email)
         {
             return await _context.Users
                .AsNoTracking()
                .Where(u => u.Email == email)
                .ProjectTo<UserDto>(_mapper.ConfigurationProvider)
                .SingleOrDefaultAsync();
-        }
-
-        public async Task<string?> GetUserPasswordByIdAsync(Guid userId)
-        {
-            return await _context.Users
-                .AsNoTracking()
-                .Where(u => u.Id == userId)
-                .Select(u => u.Password)
-                .SingleOrDefaultAsync();
         }
 
         public async Task<AuthUserDto?> GetAuthDataAsync(string email)
@@ -68,16 +59,16 @@ namespace BankSimulation.Infrastructure.Repositories
                 .SingleOrDefaultAsync();
         }
 
-        public async Task<IList<AccessRole>?> GetAccessRolesAsync(Guid userId)
+        public async Task<string?> GetPasswordAsync(Guid userId)
         {
             return await _context.Users
                 .AsNoTracking()
                 .Where(u => u.Id == userId)
-                .Select(u => u.AccessRoles)
+                .Select(u => u.Password)
                 .SingleOrDefaultAsync();
         }
 
-        public async Task<string?> GetUserEmailByIdAsync(Guid userId)
+        public async Task<string?> GetEmailAsync(Guid userId)
         {
             return await _context.Users
                 .AsNoTracking()
@@ -86,30 +77,16 @@ namespace BankSimulation.Infrastructure.Repositories
                 .SingleOrDefaultAsync();
         }
 
-        public async Task<bool> UserAlreadyDeletedByIdAsync(Guid userId)
+        public async Task<IEnumerable<AccessRole>?> GetAccessRolesAsync(Guid userId)
         {
             return await _context.Users
                 .AsNoTracking()
                 .Where(u => u.Id == userId)
-                .Select(u => u.IsDeleted)
+                .Select(u => u.AccessRoles)
                 .SingleOrDefaultAsync();
         }
 
-        public async Task<bool> AlreadyExistsAsync(string email)
-        {
-            return await _context.Users
-                .AsNoTracking()
-                .AnyAsync(u => u.Email == email);
-        }
-
-        public async Task<bool> AlreadyExistsAsync(Guid userId)
-        {
-            return await _context.Users
-                .AsNoTracking()
-                .AnyAsync(u => u.Id == userId);
-        }
-
-        public async Task UpdateUserByIdAsync(Guid userId, AdminUpdateUserDto updateUserDto)
+        public async Task UpdateAsync(Guid userId, AdminUpdateUserDto updateUserDto)
         {
             await _context.Users
                 .Where(u => u.Id == userId)
@@ -134,11 +111,43 @@ namespace BankSimulation.Infrastructure.Repositories
                 .ExecuteUpdateAsync(u => u.SetProperty(x => x.Email, newEmail));
         }
 
-        public async Task DeleteUserByIdAsync(Guid userId)
+        public async Task DeleteAsync(Guid userId)
         {
             await _context.Users
                 .Where(u => u.Id == userId)
                 .ExecuteUpdateAsync(u => u.SetProperty(x => x.IsDeleted, true));
+        }
+
+        public async Task<bool> AlreadyDeletedAsync(Guid userId)
+        {
+            return await _context.Users
+                .AsNoTracking()
+                .Where(u => u.Id == userId)
+                .Select(u => u.IsDeleted)
+                .SingleOrDefaultAsync();
+        }
+
+        public async Task<bool> AlreadyExistsAsync(Guid userId)
+        {
+            return await _context.Users
+                .AsNoTracking()
+                .AnyAsync(u => u.Id == userId);
+        }
+
+        public async Task<bool> AlreadyExistsAsync(string email)
+        {
+            return await _context.Users
+                .AsNoTracking()
+                .AnyAsync(u => u.Email == email);
+        }
+
+        public async Task<bool> AlreadyExistsExceptSpecificUserAsync(string email, Guid userId)
+        {
+            var query = await _context.Users
+                .Where(u => u.Email == email)
+                .SingleOrDefaultAsync();
+
+            return !(query == null || query.Id == userId);
         }
 
         public async Task<bool> SaveChangesAsync()

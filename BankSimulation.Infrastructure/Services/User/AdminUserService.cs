@@ -20,52 +20,34 @@ namespace BankSimulation.Infrastructure.Services
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
         }
 
-        public async Task<UserDto> GetUserAsync(Guid userId) => 
-            await _userRepository.GetUserDtoByIdAsync(userId) ?? throw new UserNotFoundException(userId.ToString());
+        public async Task<UserDto> GetUserByIdAsync(Guid userId) => 
+            await _userRepository.GetDtoAsync(userId) ?? throw new UserNotFoundException(userId.ToString());
 
-        public async Task<UserDto> GetUserAsync(string email) => 
-            await _userRepository.GetUserDtoByEmailAsync(email) ?? throw new UserNotFoundException(email);
+        public async Task<UserDto> GetUserByEmailAsync(string email) => 
+            await _userRepository.GetDtoAsync(email) ?? throw new UserNotFoundException(email);
 
-        public async Task<bool> DeleteUserAsync(Guid userId)
+        public async Task UpdateUserAsync(Guid userId, AdminUpdateUserDto dataToUpdateUser)
         {
             if (!await _userRepository.AlreadyExistsAsync(userId))
             {
                 throw new UserNotFoundException(userId.ToString());
             }
-            if (await _userRepository.UserAlreadyDeletedByIdAsync(userId))
-            {
-                throw new UserAlreadyDeletedException(userId.ToString());
-            }
 
-            await _userRepository.DeleteUserByIdAsync(userId);
-            return await _userRepository.SaveChangesAsync();
-        }
-
-        public async Task<bool> UpdateUserAsync(Guid userId, AdminUpdateUserDto updateUserDto)
-        {
-            var userEmail = await _userRepository.GetUserEmailByIdAsync(userId) 
-                ?? throw new UserNotFoundException(userId.ToString());
-
-            if (userEmail == updateUserDto.Email)
-            {
-                throw new IncorrectNewEmailException(updateUserDto.Email);
-            }
-
-            if (await _userRepository.AlreadyExistsAsync(updateUserDto.Email))
+            if (await _userRepository.AlreadyExistsExceptSpecificUserAsync(dataToUpdateUser.Email, userId))
             { 
-                throw new EmailAlreadyRegisteredException(updateUserDto.Email);
+                throw new EmailAlreadyRegisteredException(dataToUpdateUser.Email);
             }
 
             var updatedUser = new AdminUpdateUserDto(
-                updateUserDto.FirstName, updateUserDto.LastName, updateUserDto.Email, SecurityService.HashText(updateUserDto.Password));
+                dataToUpdateUser.FirstName, dataToUpdateUser.LastName, dataToUpdateUser.Email, SecurityService.HashText(dataToUpdateUser.Password));
 
-            await _userRepository.UpdateUserByIdAsync(userId, updatedUser);
-            return await _userRepository.SaveChangesAsync();
+            await _userRepository.UpdateAsync(userId, updatedUser);
+            await _userRepository.SaveChangesAsync();
         }
 
-        public async Task<bool> UpdateUserPartiallyAsync(Guid userId, JsonPatchDocument<AdminUpdateUserDto> patchDocument)
+        public async Task UpdateUserPartiallyAsync(Guid userId, JsonPatchDocument<AdminUpdateUserDto> patchDocument)
         {
-            var userEntity = await _userRepository.GetUserByIdAsync(userId) ?? throw new UserNotFoundException(userId.ToString());
+            var userEntity = await _userRepository.GetAsync(userId) ?? throw new UserNotFoundException(userId.ToString());
             var userToPatch = _mapper.Map<AdminUpdateUserDto>(userEntity);
 
             patchDocument.ApplyTo(userToPatch);
@@ -90,10 +72,27 @@ namespace BankSimulation.Infrastructure.Services
                     throw new EmailAlreadyRegisteredException(emailOperation.value.ToString()!);
                 }
             }
+
             _mapper.Map(userToPatch, userEntity);
             userEntity.Password = SecurityService.HashText(userEntity.Password);
 
-            return await _userRepository.SaveChangesAsync();
+            await _userRepository.SaveChangesAsync();
+        }
+
+        public async Task DeleteUserAsync(Guid userId)
+        {
+            if (!await _userRepository.AlreadyExistsAsync(userId))
+            {
+                throw new UserNotFoundException(userId.ToString());
+            }
+
+            if (await _userRepository.AlreadyDeletedAsync(userId))
+            {
+                throw new UserAlreadyDeletedException(userId.ToString());
+            }
+
+            await _userRepository.DeleteAsync(userId);
+            await _userRepository.SaveChangesAsync();
         }
     }
 }

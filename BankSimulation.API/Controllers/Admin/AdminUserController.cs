@@ -25,16 +25,37 @@ namespace BankSimulation.API.Controllers.Admin
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<UserDto>> GetUserById(Guid userId)
         {
-            return Ok(await _adminUserService.GetUserAsync(userId));
+            return Ok(await _adminUserService.GetUserByIdAsync(userId));
         }
 
         [HttpGet("by-email/{email}"), Authorize(Roles = nameof(AccessRole.Admin))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<UserDto>> GetUserByEmail(string email)
         {
-            return Ok(await _adminUserService.GetUserAsync(email));
+            return Ok(await _adminUserService.GetUserByEmailAsync(email));
+        }
+
+        [HttpPut("{userId}"), Authorize(Roles = nameof(AccessRole.Admin))]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ErrorDetails))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> UpdateUser(Guid userId, AdminUpdateUserDto dataToUpdateUser)
+        {
+            await _adminUserService.UpdateUserAsync(userId, dataToUpdateUser);
+            return NoContent();
+        }
+
+        [HttpPatch("{userId}"), Authorize(Roles = nameof(AccessRole.Admin))]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ErrorDetails))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorDetails))]
+        public async Task<IActionResult> UpdateUserPartially(Guid userId, JsonPatchDocument<AdminUpdateUserDto> patchDocument)
+        {
+            await _adminUserService.UpdateUserPartiallyAsync(userId, patchDocument);
+            return NoContent();
         }
 
         [HttpDelete("{userId}"), Authorize(Roles = nameof(AccessRole.Admin))]
@@ -46,26 +67,6 @@ namespace BankSimulation.API.Controllers.Admin
         {
             await _adminUserService.DeleteUserAsync(userId);
             return NoContent();
-        }
-
-        [HttpPut("{userId}"), Authorize(Roles = nameof(AccessRole.Admin))]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ErrorDetails))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<bool>> UpdateUser(Guid userId, AdminUpdateUserDto updateUserDto)
-        {
-            return Ok(await _adminUserService.UpdateUserAsync(userId, updateUserDto));
-        }
-
-        [HttpPatch("{userId}"), Authorize(Roles = nameof(AccessRole.Admin))]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ErrorDetails))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorDetails))]
-        public async Task<ActionResult<bool>> UpdateUserPartially(Guid userId, JsonPatchDocument<AdminUpdateUserDto> patchDocument)
-        {
-            return Ok(await _adminUserService.UpdateUserPartiallyAsync(userId, patchDocument));
         }
     }
 }
