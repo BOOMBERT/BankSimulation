@@ -7,6 +7,6 @@
         public DateTime Date { get; set; } = DateTime.UtcNow;
 
         public BankAccount BankAccount { get; set; }
-        public Guid BankAccountId { get; set; }
+        public string BankAccountNumber { get; set; }
     }
 }

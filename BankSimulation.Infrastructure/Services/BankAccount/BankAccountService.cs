@@ -23,8 +23,8 @@ namespace BankSimulation.Infrastructure.Services
         public async Task<IEnumerable<BankAccountDto>> GetAllOwnBankAccountsAsync(string accessToken)
         {
             var userId = _userAuthService.GetUserIdFromJwt(accessToken);
-            var userBankAccounts = await _bankAccountRepository.GetAsync(userId) 
-                ?? Enumerable.Empty<BankAccount>();
+            var userBankAccounts = await _bankAccountRepository.GetAsync(userId)
+                            ?? Enumerable.Empty<BankAccount>();
 
             return _mapper.Map<IEnumerable<BankAccountDto>>(userBankAccounts);
         }

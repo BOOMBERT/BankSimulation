@@ -2,5 +2,5 @@
 
 namespace BankSimulation.Application.Dtos.BankAccount
 {
-    public record BankAccountDto(Guid Id, string Number, Currency Currency, decimal Money, DateTime CreationDate, bool IsDeleted);
+    public record BankAccountDto(string Number, Currency Currency, decimal Money, DateTime CreationDate, bool IsDeleted);
 }

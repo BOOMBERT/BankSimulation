@@ -91,7 +91,7 @@ namespace BankSimulation.Infrastructure.Services
             string generatedBankAccountNumber;
             do 
             {
-                generatedBankAccountNumber = _random.Next(100_000_000, 999_999_999).ToString();
+                generatedBankAccountNumber = _random.Next(100_000, 999_999).ToString();
             } while (await _bankAccountRepository.AlreadyExistsAsync(generatedBankAccountNumber));
 
             return generatedBankAccountNumber;

@@ -1,10 +1,11 @@
 ﻿using BankSimulation.Domain.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace BankSimulation.Domain.Entities
 {
     public class BankAccount
     {
-        public Guid Id { get; set; }
+        [Key]
         public string Number { get; set; }
         public Currency Currency { get; set; }
         public decimal Money { get; set; }

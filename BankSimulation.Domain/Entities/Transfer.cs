@@ -7,8 +7,8 @@
         public DateTime Date { get; set; } = DateTime.UtcNow;
 
         public BankAccount SenderBankAccount { get; set; }
-        public Guid SenderBankAccountId { get; set; }
+        public string SenderBankAccountNumber { get; set; }
         public BankAccount RecipientBankAccount { get; set; }
-        public Guid RecipientBankAccountId { get; set; }
+        public string RecipientBankAccountNumber { get; set; }
     }
 }

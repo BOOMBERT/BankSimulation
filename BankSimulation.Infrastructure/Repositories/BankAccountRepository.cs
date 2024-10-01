@@ -1,5 +1,6 @@
 ﻿using BankSimulation.Application.Interfaces.Repositories;
 using BankSimulation.Domain.Entities;
+using BankSimulation.Domain.Enums;
 using BankSimulation.Infrastructure.DbContexts;
 using Microsoft.EntityFrameworkCore;
 
@@ -38,6 +39,15 @@ namespace BankSimulation.Infrastructure.Repositories
             return await query.SingleOrDefaultAsync();
         }
 
+        public async Task<Currency?> GetCurrencyAsync(Guid userId, string bankAccountNumber)
+        {
+            return await _context.BankAccounts
+                .AsNoTracking()
+                .Where(ba => ba.UserId == userId && ba.Number == bankAccountNumber)
+                .Select(ba => (Currency?)ba.Currency)
+                .SingleOrDefaultAsync();
+        }
+
         public async Task<bool> AlreadyExistsAsync(string bankAccountNumber)
         {
             return await _context.BankAccounts
@@ -52,6 +62,22 @@ namespace BankSimulation.Infrastructure.Repositories
                 .Where(ba => ba.Number == bankAccountNumber)
                 .Select(ba => ba.IsDeleted)
                 .SingleOrDefaultAsync();
+        }
+
+        public async Task DepositMoneyAsync(decimal amount, string bankAccountNumber)
+        {
+            await _context.BankAccounts
+                .Where(ba => ba.Number == bankAccountNumber)
+                .ExecuteUpdateAsync(ba => ba
+                .SetProperty(x => x.Money, x => x.Money + amount));
+        }
+
+        public async Task DeleteAsync(Guid userId)
+        {
+            await _context.BankAccounts
+                .Where(ba => ba.UserId == userId && ba.IsDeleted == false)
+                .ExecuteUpdateAsync(x => x
+                .SetProperty(x => x.IsDeleted, true));
         }
     }
 }

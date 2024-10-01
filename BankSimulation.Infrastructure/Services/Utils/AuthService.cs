@@ -9,7 +9,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace BankSimulation.Infrastructure.Services
+namespace BankSimulation.Infrastructure.Services.Utils
 {
     public class AuthService : IAuthService
     {

@@ -4,6 +4,7 @@ using BankSimulation.Application.Exceptions.User;
 using BankSimulation.Application.Interfaces.Repositories;
 using BankSimulation.Application.Interfaces.Services;
 using BankSimulation.Application.Validators.User;
+using BankSimulation.Infrastructure.Repositories;
 using BankSimulation.Infrastructure.Services.Utils;
 using Microsoft.AspNetCore.JsonPatch;
 
@@ -13,11 +14,13 @@ namespace BankSimulation.Infrastructure.Services
     {
         private readonly IMapper _mapper;
         private readonly IUserRepository _userRepository;
+        private readonly IBankAccountRepository _bankAccountRepository;
 
-        public AdminUserService(IMapper mapper, IUserRepository userRepository)
+        public AdminUserService(IMapper mapper, IUserRepository userRepository, IBankAccountRepository bankAccountRepository)
         {
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+            _bankAccountRepository = bankAccountRepository ?? throw new ArgumentNullException(nameof(bankAccountRepository));
         }
 
         public async Task<UserDto> GetUserByIdAsync(Guid userId) => 
@@ -90,6 +93,8 @@ namespace BankSimulation.Infrastructure.Services
             {
                 throw new UserAlreadyDeletedException(userId.ToString());
             }
+
+            await _bankAccountRepository.DeleteAsync(userId);
 
             await _userRepository.DeleteAsync(userId);
             await _userRepository.SaveChangesAsync();

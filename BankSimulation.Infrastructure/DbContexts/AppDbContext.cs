@@ -67,29 +67,29 @@ namespace BankSimulation.Infrastructure.DbContexts
             {
                 eb.Property(ba => ba.Number)
                 .IsRequired()
-                .HasMaxLength(26);
+                .HasMaxLength(6);
 
                 eb.Property(ba => ba.Money)
                 .HasPrecision(18, 2);
 
                 eb.HasMany(ba => ba.Deposits)
                 .WithOne(d => d.BankAccount)
-                .HasForeignKey(d => d.BankAccountId)
+                .HasForeignKey(d => d.BankAccountNumber)
                 .OnDelete(DeleteBehavior.NoAction);
 
                 eb.HasMany(ba => ba.Withdraws)
                 .WithOne(w => w.BankAccount)
-                .HasForeignKey(w => w.BankAccountId)
+                .HasForeignKey(w => w.BankAccountNumber)
                 .OnDelete(DeleteBehavior.NoAction);
 
                 eb.HasMany(ba => ba.SentTransfers)
                 .WithOne(t => t.SenderBankAccount)
-                .HasForeignKey(t => t.SenderBankAccountId)
+                .HasForeignKey(t => t.SenderBankAccountNumber)
                 .OnDelete(DeleteBehavior.NoAction);
 
                 eb.HasMany(ba => ba.ReceivedTransfers)
                 .WithOne(t => t.RecipientBankAccount)
-                .HasForeignKey(t => t.RecipientBankAccountId)
+                .HasForeignKey(t => t.RecipientBankAccountNumber)
                 .OnDelete(DeleteBehavior.NoAction);
 
                 eb.HasIndex(ba => ba.Number)

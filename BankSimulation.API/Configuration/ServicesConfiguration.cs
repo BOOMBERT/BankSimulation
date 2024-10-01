@@ -4,6 +4,7 @@ using BankSimulation.Application.Interfaces.Repositories;
 using BankSimulation.Application.Interfaces.Services;
 using BankSimulation.Infrastructure.Repositories;
 using BankSimulation.Infrastructure.Services;
+using BankSimulation.Infrastructure.Services.Utils;
 using FluentValidation.AspNetCore;
 using System.Reflection;
 
@@ -38,6 +39,8 @@ namespace BankSimulation.API.Configuration
 
             services.AddAutoMapper(applicationAssembly);
 
+            services.AddHttpClient();
+
             services.AddScoped<ErrorHandlingMiddleware>();
 
             services.AddScoped<IUserService, UserService>();
@@ -63,6 +66,10 @@ namespace BankSimulation.API.Configuration
             services.AddScoped<IBankAccountRepository, BankAccountRepository>();
 
             services.AddScoped<IBankAccountService, BankAccountService>();
+
+            services.AddScoped<IAdminBankAccountOperationsService, AdminBankAccountOperationsService>();
+
+            services.AddScoped<IBankAccountOperationsRepository, BankAccountOperationsRepository>();
         }
     }
 }
