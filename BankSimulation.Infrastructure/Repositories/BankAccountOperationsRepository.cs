@@ -18,5 +18,11 @@ namespace BankSimulation.Infrastructure.Repositories
             await _context.Deposits
                 .AddAsync(deposit);
         }
+
+        public async Task AddWithdrawAsync(Withdraw withdraw)
+        {
+            await _context.Withdraws
+                .AddAsync(withdraw);
+        }
     }
 }

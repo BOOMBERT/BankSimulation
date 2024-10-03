@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BankSimulation.API.Controllers.Admin
 {
-    [Route("api/admin/users/{userId}/bank-accounts/{number}")]
+    [Route("api/admin/users/{userId}/bank-accounts/{bankAccountNumber}")]
     [ApiController]
     public class AdminBankAccountOperationsController : ControllerBase
     {
@@ -22,9 +22,21 @@ namespace BankSimulation.API.Controllers.Admin
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ErrorDetails))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorDetails))]
-        public async Task<IActionResult> DepositUserMoney(Guid userId, string number, decimal amount, Currency currency)
+        public async Task<IActionResult> DepositUserMoney(Guid userId, string bankAccountNumber, decimal amount, Currency currency)
         {
-            await _adminBankAccountOperationsService.DepositUserMoneyAsync(userId, number, amount, currency);
+            await _adminBankAccountOperationsService.DepositUserMoneyAsync(userId, bankAccountNumber, amount, currency);
+            return NoContent();
+        }
+
+        [HttpPost("withdraw"), Authorize(Roles = nameof(AccessRole.Admin))]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ErrorDetails))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorDetails))]
+
+        public async Task<IActionResult> WithdrawUserMoney(Guid userId, string bankAccountNumber, decimal amount, Currency currency)
+        {
+            await _adminBankAccountOperationsService.WithdrawUserMoneyAsync(userId, bankAccountNumber, amount, currency);
             return NoContent();
         }
     }

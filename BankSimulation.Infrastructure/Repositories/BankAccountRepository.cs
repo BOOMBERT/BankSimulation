@@ -48,6 +48,15 @@ namespace BankSimulation.Infrastructure.Repositories
                 .SingleOrDefaultAsync();
         }
 
+        public async Task<decimal> GetBalanceAsync(string bankAccountNumber)
+        {
+            return await _context.BankAccounts
+                .AsNoTracking()
+                .Where(ba => ba.Number == bankAccountNumber)
+                .Select(ba => ba.Money)
+                .SingleOrDefaultAsync();
+        }
+
         public async Task<bool> AlreadyExistsAsync(string bankAccountNumber)
         {
             return await _context.BankAccounts
@@ -70,6 +79,14 @@ namespace BankSimulation.Infrastructure.Repositories
                 .Where(ba => ba.Number == bankAccountNumber)
                 .ExecuteUpdateAsync(ba => ba
                 .SetProperty(x => x.Money, x => x.Money + amount));
+        }
+
+        public async Task WithdrawMoneyAsync(decimal amount, string bankAccountNumber)
+        {
+            await _context.BankAccounts
+                .Where(ba => ba.Number == bankAccountNumber)
+                .ExecuteUpdateAsync(ba => ba
+                .SetProperty(x => x.Money, x => x.Money - amount));
         }
 
         public async Task DeleteAsync(Guid userId)

@@ -5,5 +5,6 @@ namespace BankSimulation.Application.Interfaces.Services
     public interface IAdminBankAccountOperationsService
     {
         Task DepositUserMoneyAsync(Guid userId, string bankAccountNumber, decimal amount, Currency currency);
+        Task WithdrawUserMoneyAsync(Guid userId, string bankAccountNumber, decimal amount, Currency currency);
     }
 }

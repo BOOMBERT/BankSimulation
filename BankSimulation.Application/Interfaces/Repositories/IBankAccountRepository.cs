@@ -9,9 +9,11 @@ namespace BankSimulation.Application.Interfaces.Repositories
         Task<IEnumerable<BankAccount>> GetAsync(Guid userId);
         Task<BankAccount?> GetAsync(Guid userId, string bankAccountNumber, bool trackChanges = false);
         Task<Currency?> GetCurrencyAsync(Guid userId, string bankAccountNumber);
+        Task<decimal> GetBalanceAsync(string bankAccountNumber);
         Task<bool> AlreadyExistsAsync(string bankAccountNumber);
         Task<bool> AlreadyDeletedAsync(string bankAccountNumber);
         Task DepositMoneyAsync(decimal amount, string bankAccountNumber);
+        Task WithdrawMoneyAsync(decimal amount, string bankAccountNumber);
         Task DeleteAsync(Guid userId);
     }
 }

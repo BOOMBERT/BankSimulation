@@ -1,4 +1,5 @@
 ﻿using BankSimulation.Application.Exceptions.BankAccount;
+using BankSimulation.Application.Exceptions.BankAccount.Operations;
 using BankSimulation.Application.Exceptions.User;
 using BankSimulation.Application.Interfaces.Repositories;
 using BankSimulation.Application.Interfaces.Services;
@@ -22,18 +23,18 @@ namespace BankSimulation.Infrastructure.Services
 
         public AdminBankAccountOperationsService(
             HttpClient httpClient,
-            IConfiguration configuration, 
-            IUserRepository userRepository, 
-            IBankAccountRepository bankAccountRepository, 
+            IConfiguration configuration,
+            IUserRepository userRepository,
+            IBankAccountRepository bankAccountRepository,
             IBankAccountOperationsRepository bankAccountOperationsRepository)
         {
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _bankAccountRepository = bankAccountRepository ?? throw new ArgumentNullException(nameof(bankAccountRepository));
-            _bankAccountOperationsRepository = bankAccountOperationsRepository 
+            _bankAccountOperationsRepository = bankAccountOperationsRepository
                 ?? throw new ArgumentNullException(nameof(bankAccountOperationsRepository));
-            _exchangeCurrenciesApiKey = _configuration["MySettings:ExchangeCurrencyApiKey"] 
+            _exchangeCurrenciesApiKey = _configuration["MySettings:ExchangeCurrencyApiKey"]
                 ?? throw new ArgumentNullException("The ExchangeCurrencyApiKey cannot be null.");
         }
 
@@ -41,36 +42,71 @@ namespace BankSimulation.Infrastructure.Services
         {
             if (amount <= 0)
             {
-                throw new IncorrectAmountToDepositException($"{userId} - {amount}");
+                throw new IncorrectAmountToDepositException($"{bankAccountNumber} - {amount}");
             }
 
-            if (!await _userRepository.AlreadyExistsAsync(userId))
-            {
-                throw new UserNotFoundException(userId.ToString());
-            }
+            var bankAccountCurrencyInDb = await GetValidatedUserBankAccountCurrencyAsync(userId, bankAccountNumber);
 
             if (await _bankAccountRepository.AlreadyDeletedAsync(bankAccountNumber))
             {
-                throw new UserBankAccountAlreadyDeletedException($"{userId} - {bankAccountNumber}");
+                throw new BankAccountAlreadyDeletedException(bankAccountNumber);
             }
-
-            var bankAccountCurrencyInDb = await _bankAccountRepository.GetCurrencyAsync(userId, bankAccountNumber)
-                ?? throw new UserBankAccountDoesNotExistException($"{userId} - {bankAccountNumber}");
 
             if (currency != bankAccountCurrencyInDb)
             {
                 amount = await ExchangeCurrencyAsync(amount, currency, bankAccountCurrencyInDb);
             }
-            
+
             await _bankAccountRepository.DepositMoneyAsync(amount, bankAccountNumber);
-            var deposit = new Deposit 
+            var deposit = new Deposit
             {
+                Amount = amount,
+                BankAccountNumber = bankAccountNumber
+            };
+
+            await _bankAccountOperationsRepository.AddDepositAsync(deposit);
+            await _userRepository.SaveChangesAsync();
+        }
+
+        public async Task WithdrawUserMoneyAsync(Guid userId, string bankAccountNumber, decimal amount, Currency currency) 
+        {
+            if (amount <= 0)
+            {
+                throw new IncorrectAmountToWithdrawException($"{bankAccountNumber} - {amount}");
+            }
+
+            var bankAccountCurrencyInDb = await GetValidatedUserBankAccountCurrencyAsync(userId, bankAccountNumber);
+
+            if (currency != bankAccountCurrencyInDb)
+            {
+                amount = await ExchangeCurrencyAsync(amount, currency, bankAccountCurrencyInDb);
+            }
+
+            if (await _bankAccountRepository.GetBalanceAsync(bankAccountNumber) < amount)
+            {
+                throw new BankAccountBalanceTooLowException(bankAccountNumber);
+            }
+
+            await _bankAccountRepository.WithdrawMoneyAsync(amount, bankAccountNumber);
+            var withdraw = new Withdraw 
+            { 
                 Amount = amount, 
                 BankAccountNumber = bankAccountNumber 
             };
 
-            await _bankAccountOperationsRepository.AddDepositAsync(deposit);
-            await _userRepository.SaveChangesAsync();    
+            await _bankAccountOperationsRepository.AddWithdrawAsync(withdraw);
+            await _userRepository.SaveChangesAsync();
+        }
+
+        private async Task<Currency> GetValidatedUserBankAccountCurrencyAsync(Guid userId, string bankAccountNumber)
+        {
+            if (!await _userRepository.AlreadyExistsAsync(userId))
+            {
+                throw new UserNotFoundException(userId.ToString());
+            }
+
+            return await _bankAccountRepository.GetCurrencyAsync(userId, bankAccountNumber)
+                ?? throw new BankAccountDoesNotExistException(bankAccountNumber);
         }
 
         private async Task<decimal> ExchangeCurrencyAsync(decimal amount, Currency currentCurrency, Currency requiredCurrency)

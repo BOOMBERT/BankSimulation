@@ -33,7 +33,7 @@ namespace BankSimulation.Infrastructure.Services
         {
             var userId = _userAuthService.GetUserIdFromJwt(accessToken);
             return _mapper.Map<BankAccountDto>(await _bankAccountRepository.GetAsync(userId, bankAccountNumber) 
-                ?? throw new UserBankAccountDoesNotExistException(userId.ToString()));
+                ?? throw new BankAccountDoesNotExistException(userId.ToString()));
         }
     }
 }
