@@ -36,6 +36,14 @@ namespace BankSimulation.API.Controllers.Admin
             return Ok(await _adminUserService.GetUserByEmailAsync(email));
         }
 
+        [HttpGet("by-bank-account-number/{bankAccountNumber}"), Authorize(Roles = nameof(AccessRole.Admin))]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]
+        public async Task<ActionResult<UserDto>> GetUserByBankAccountNumber(string bankAccountNumber)
+        {
+            return Ok(await _adminUserService.GetUserByBankAccountNumberAsync(bankAccountNumber));
+        }
+
         [HttpPut("{userId}"), Authorize(Roles = nameof(AccessRole.Admin))]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]

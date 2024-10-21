@@ -110,7 +110,10 @@ namespace BankSimulation.Infrastructure.DbContexts
 
             modelBuilder.Entity<Transfer>(eb =>
             {
-                eb.Property(t => t.Amount)
+                eb.Property(t => t.SenderAmount)
+                .HasPrecision(18, 2);
+
+                eb.Property(t => t.RecipientAmount)
                 .HasPrecision(18, 2);
             });
 

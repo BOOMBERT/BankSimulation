@@ -6,5 +6,7 @@ namespace BankSimulation.Application.Interfaces.Repositories
     {
         Task AddDepositAsync(Deposit deposit);
         Task AddWithdrawAsync(Withdraw withdraw);
+        Task AddTransferAsync(Transfer transfer);
+        Task<bool> SaveChangesAsync();
     }
 }

@@ -7,6 +7,7 @@ namespace BankSimulation.Application.Interfaces.Services
     {
         Task<UserDto> GetUserByIdAsync(Guid userId);
         Task<UserDto> GetUserByEmailAsync(string email);
+        Task<UserDto> GetUserByBankAccountNumberAsync(string bankAccountNumber);
         Task UpdateUserAsync(Guid userId, AdminUpdateUserDto updateUserDto);
         Task UpdateUserPartiallyAsync(Guid userId, JsonPatchDocument<AdminUpdateUserDto> patchDocument);
         Task DeleteUserAsync(Guid userId);

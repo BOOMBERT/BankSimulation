@@ -3,7 +3,8 @@
     public class Transfer
     {
         public int Id { get; set; }
-        public decimal Amount { get; set; }
+        public decimal SenderAmount { get; set; }
+        public decimal RecipientAmount { get; set; }
         public DateTime Date { get; set; } = DateTime.UtcNow;
 
         public BankAccount SenderBankAccount { get; set; }

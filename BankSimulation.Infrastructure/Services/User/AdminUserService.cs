@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using BankSimulation.Application.Dtos.User;
+using BankSimulation.Application.Exceptions.BankAccount;
 using BankSimulation.Application.Exceptions.User;
 using BankSimulation.Application.Interfaces.Repositories;
 using BankSimulation.Application.Interfaces.Services;
@@ -28,6 +29,14 @@ namespace BankSimulation.Infrastructure.Services
 
         public async Task<UserDto> GetUserByEmailAsync(string email) => 
             await _userRepository.GetDtoAsync(email) ?? throw new UserNotFoundException(email);
+
+        public async Task<UserDto> GetUserByBankAccountNumberAsync(string bankAccountNumber)
+        {
+            var userId = await _bankAccountRepository.GetUserIdAsync(bankAccountNumber) 
+                ?? throw new BankAccountDoesNotExistException(bankAccountNumber);
+
+            return await _userRepository.GetDtoAsync(userId) ?? throw new UserNotFoundException(userId.ToString());
+        }
 
         public async Task UpdateUserAsync(Guid userId, AdminUpdateUserDto dataToUpdateUser)
         {

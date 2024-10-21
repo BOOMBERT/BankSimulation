@@ -25,9 +25,9 @@ namespace BankSimulation.API.Controllers.Admin
         public async Task<ActionResult<BankAccountDto>> OpenBankAccount(Guid userId, Currency currency)
         {
             var createdBankAccount = await _adminBankAccountService.CreateUserBankAccountAsync(userId, currency);
-            return CreatedAtAction("GetUserSpecificBankAccount", new { userId, accountNumber = createdBankAccount.Number }, createdBankAccount);
+            return CreatedAtAction("GetUserSpecificBankAccount", new { userId, bankAccountNumber = createdBankAccount.Number }, createdBankAccount);
         }
-
+        
         [HttpGet, Authorize(Roles = nameof(AccessRole.Admin))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]
@@ -37,23 +37,23 @@ namespace BankSimulation.API.Controllers.Admin
             return Ok(await _adminBankAccountService.GetUserAllBankAccountsAsync(userId));
         }
 
-        [HttpGet("{accountNumber}"), Authorize(Roles = nameof(AccessRole.Admin))]
+        [HttpGet("{bankAccountNumber}"), Authorize(Roles = nameof(AccessRole.Admin))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<BankAccountDto>> GetUserSpecificBankAccount(Guid userId, string accountNumber)
+        public async Task<ActionResult<BankAccountDto>> GetUserSpecificBankAccount(Guid userId, string bankAccountNumber)
         {
-            return Ok(await _adminBankAccountService.GetUserBankAccountAsync(userId, accountNumber));
+            return Ok(await _adminBankAccountService.GetUserBankAccountAsync(userId, bankAccountNumber));
         }
 
-        [HttpDelete("{accountNumber}"), Authorize(Roles = nameof(AccessRole.Admin))]
+        [HttpDelete("{bankAccountNumber}"), Authorize(Roles = nameof(AccessRole.Admin))]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ErrorDetails))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<bool>> CloseBankAccount(Guid userId, string accountNumber)
+        public async Task<ActionResult<bool>> CloseBankAccount(Guid userId, string bankAccountNumber)
         {
-            await _adminBankAccountService.DeleteUserBankAccountAsync(userId, accountNumber);
+            await _adminBankAccountService.DeleteUserBankAccountAsync(userId, bankAccountNumber);
             return NoContent();
         }
     }

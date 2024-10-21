@@ -5,37 +5,30 @@ using BankSimulation.Application.Interfaces.Repositories;
 using BankSimulation.Application.Interfaces.Services;
 using BankSimulation.Domain.Entities;
 using BankSimulation.Domain.Enums;
+using BankSimulation.Infrastructure.Services.Utils;
 using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace BankSimulation.Infrastructure.Services
 {
     public class AdminBankAccountOperationsService : IAdminBankAccountOperationsService
     {
-        private readonly IConfiguration _configuration;
-        private readonly HttpClient _httpClient;
         private readonly IUserRepository _userRepository;
         private readonly IBankAccountRepository _bankAccountRepository;
         private readonly IBankAccountOperationsRepository _bankAccountOperationsRepository;
-        private readonly string _exchangeCurrenciesApiKey;
-        private const string _exchangeCurrenciesApiUrl = "https://v6.exchangerate-api.com/v6/";
+        private readonly MoneyOperations _moneyOperations;
 
         public AdminBankAccountOperationsService(
-            HttpClient httpClient,
-            IConfiguration configuration,
             IUserRepository userRepository,
             IBankAccountRepository bankAccountRepository,
-            IBankAccountOperationsRepository bankAccountOperationsRepository)
+            IBankAccountOperationsRepository bankAccountOperationsRepository,
+            IConfiguration configuration,
+            HttpClient httpClient)
         {
-            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _bankAccountRepository = bankAccountRepository ?? throw new ArgumentNullException(nameof(bankAccountRepository));
             _bankAccountOperationsRepository = bankAccountOperationsRepository
                 ?? throw new ArgumentNullException(nameof(bankAccountOperationsRepository));
-            _exchangeCurrenciesApiKey = _configuration["MySettings:ExchangeCurrencyApiKey"]
-                ?? throw new ArgumentNullException("The ExchangeCurrencyApiKey cannot be null.");
+            _moneyOperations = new MoneyOperations(configuration, httpClient);
         }
 
         public async Task DepositUserMoneyAsync(Guid userId, string bankAccountNumber, decimal amount, Currency currency)
@@ -54,7 +47,7 @@ namespace BankSimulation.Infrastructure.Services
 
             if (currency != bankAccountCurrencyInDb)
             {
-                amount = await ExchangeCurrencyAsync(amount, currency, bankAccountCurrencyInDb);
+                amount = await _moneyOperations.ExchangeCurrencyAsync(amount, currency, bankAccountCurrencyInDb);
             }
 
             await _bankAccountRepository.DepositMoneyAsync(amount, bankAccountNumber);
@@ -65,7 +58,7 @@ namespace BankSimulation.Infrastructure.Services
             };
 
             await _bankAccountOperationsRepository.AddDepositAsync(deposit);
-            await _userRepository.SaveChangesAsync();
+            await _bankAccountOperationsRepository.SaveChangesAsync();
         }
 
         public async Task WithdrawUserMoneyAsync(Guid userId, string bankAccountNumber, decimal amount, Currency currency) 
@@ -79,7 +72,7 @@ namespace BankSimulation.Infrastructure.Services
 
             if (currency != bankAccountCurrencyInDb)
             {
-                amount = await ExchangeCurrencyAsync(amount, currency, bankAccountCurrencyInDb);
+                amount = await _moneyOperations.ExchangeCurrencyAsync(amount, currency, bankAccountCurrencyInDb);
             }
 
             if (await _bankAccountRepository.GetBalanceAsync(bankAccountNumber) < amount)
@@ -95,7 +88,7 @@ namespace BankSimulation.Infrastructure.Services
             };
 
             await _bankAccountOperationsRepository.AddWithdrawAsync(withdraw);
-            await _userRepository.SaveChangesAsync();
+            await _bankAccountOperationsRepository.SaveChangesAsync();
         }
 
         private async Task<Currency> GetValidatedUserBankAccountCurrencyAsync(Guid userId, string bankAccountNumber)
@@ -105,38 +98,8 @@ namespace BankSimulation.Infrastructure.Services
                 throw new UserNotFoundException(userId.ToString());
             }
 
-            return await _bankAccountRepository.GetCurrencyAsync(userId, bankAccountNumber)
+            return await _bankAccountRepository.GetCurrencyAsync(bankAccountNumber, userId)
                 ?? throw new BankAccountDoesNotExistException(bankAccountNumber);
-        }
-
-        private async Task<decimal> ExchangeCurrencyAsync(decimal amount, Currency currentCurrency, Currency requiredCurrency)
-        {
-            try
-            {
-                var response = await _httpClient.GetStringAsync(
-                    $"{_exchangeCurrenciesApiUrl}{_exchangeCurrenciesApiKey}/latest/{currentCurrency}");
-
-                var data = JsonConvert.DeserializeObject<Dictionary<string, object>>(response);
-
-                if (data == null || !data.ContainsKey("conversion_rates"))
-                {
-                    throw new KeyNotFoundException("The 'conversion_rates' section not found.");
-                }
-
-                var conversionRatesJObject = data["conversion_rates"] as JObject;
-                var conversionRates = conversionRatesJObject!.ToObject<Dictionary<string, decimal>>();
-
-                if (conversionRates == null || !conversionRates.TryGetValue(requiredCurrency.ToString(), out var exchangeRate))
-                {
-                    throw new KeyNotFoundException($"Currency '{requiredCurrency}' not found.");
-                }
-
-                return amount * exchangeRate;
-            }
-            catch (HttpRequestException)
-            {
-                throw new HttpRequestException("Error accessing the currency exchange API.");
-            }
         }
     }
 }

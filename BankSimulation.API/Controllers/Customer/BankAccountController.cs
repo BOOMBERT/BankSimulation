@@ -26,13 +26,13 @@ namespace BankSimulation.API.Controllers.Customer
             return Ok(await _bankAccountService.GetAllOwnBankAccountsAsync(accessTokenFromHeader));
         }
 
-        [HttpGet("{accountNumber}"), Authorize(Roles = nameof(AccessRole.Customer))]
+        [HttpGet("{bankAccountNumber}"), Authorize(Roles = nameof(AccessRole.Customer))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorDetails))]
-        public async Task<ActionResult<BankAccountDto>> GetOwnSpecificBankAccount(string accountNumber)
+        public async Task<ActionResult<BankAccountDto>> GetOwnSpecificBankAccount(string bankAccountNumber)
         {
             string accessTokenFromHeader = Request.Headers.Authorization.ToString().Split(' ')[1];
-            return Ok(await _bankAccountService.GetOwnBankAccountAsync(accessTokenFromHeader, accountNumber));
+            return Ok(await _bankAccountService.GetOwnBankAccountAsync(accessTokenFromHeader, bankAccountNumber));
         }
     }
 }

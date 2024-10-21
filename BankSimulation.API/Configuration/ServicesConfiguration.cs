@@ -70,6 +70,8 @@ namespace BankSimulation.API.Configuration
             services.AddScoped<IAdminBankAccountOperationsService, AdminBankAccountOperationsService>();
 
             services.AddScoped<IBankAccountOperationsRepository, BankAccountOperationsRepository>();
+
+            services.AddScoped<IBankAccountOperationsService, BankAccountOperationsService>();
         }
     }
 }

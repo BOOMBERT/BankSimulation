@@ -24,5 +24,16 @@ namespace BankSimulation.Infrastructure.Repositories
             await _context.Withdraws
                 .AddAsync(withdraw);
         }
+
+        public async Task AddTransferAsync(Transfer transfer)
+        {
+            await _context.Transfers
+                .AddAsync(transfer);
+        }
+
+        public async Task<bool> SaveChangesAsync()
+        {
+            return (await _context.SaveChangesAsync() >= 0);
+        }
     }
 }

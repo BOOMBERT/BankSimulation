@@ -39,11 +39,29 @@ namespace BankSimulation.Infrastructure.Repositories
             return await query.SingleOrDefaultAsync();
         }
 
-        public async Task<Currency?> GetCurrencyAsync(Guid userId, string bankAccountNumber)
+        public async Task<Guid?> GetUserIdAsync(string bankAccountNumber)
+        {
+            return await _context.BankAccounts
+               .AsNoTracking()
+               .Where(ba => ba.Number == bankAccountNumber)
+               .Select(ba => (Guid?)ba.UserId)
+               .SingleOrDefaultAsync();
+        }
+
+        public async Task<Currency?> GetCurrencyAsync(string bankAccountNumber)
         {
             return await _context.BankAccounts
                 .AsNoTracking()
-                .Where(ba => ba.UserId == userId && ba.Number == bankAccountNumber)
+                .Where(ba => ba.Number == bankAccountNumber)
+                .Select(ba => (Currency?)ba.Currency)
+                .SingleOrDefaultAsync();
+        }
+
+        public async Task<Currency?> GetCurrencyAsync(string bankAccountNumber, Guid userId)
+        {
+            return await _context.BankAccounts
+                .AsNoTracking()
+                .Where(ba => ba.Number == bankAccountNumber && ba.UserId == userId)
                 .Select(ba => (Currency?)ba.Currency)
                 .SingleOrDefaultAsync();
         }
