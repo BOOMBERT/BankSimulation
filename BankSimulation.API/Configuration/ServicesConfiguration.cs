@@ -5,6 +5,7 @@ using BankSimulation.Application.Interfaces.Services;
 using BankSimulation.Infrastructure.Repositories;
 using BankSimulation.Infrastructure.Services;
 using BankSimulation.Infrastructure.Services.Utils;
+using FluentValidation;
 using FluentValidation.AspNetCore;
 using System.Reflection;
 
@@ -18,10 +19,6 @@ namespace BankSimulation.API.Configuration
 
             services.AddControllers()
                 .AddNewtonsoftJson()
-                .AddFluentValidation(x =>
-                {
-                    x.RegisterValidatorsFromAssembly(applicationAssembly);
-                })
                 .ConfigureApiBehaviorOptions(options =>
                 {
                     options.InvalidModelStateResponseFactory = context =>
@@ -36,6 +33,10 @@ namespace BankSimulation.API.Configuration
                         throw new ValidationErrorException(errors);
                     };
                 });
+
+            services.AddFluentValidationAutoValidation();
+
+            services.AddValidatorsFromAssembly(applicationAssembly);
 
             services.AddAutoMapper(applicationAssembly);
 

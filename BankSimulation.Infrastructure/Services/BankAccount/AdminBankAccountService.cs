@@ -15,6 +15,7 @@ namespace BankSimulation.Infrastructure.Services
         private readonly IUserRepository _userRepository;
         private readonly IBankAccountRepository _bankAccountRepository;
         private static readonly Random _random = new();
+        private const byte BankAcountNumberLength = 6;
 
         public AdminBankAccountService(IMapper mapper, IUserRepository userRepository, IBankAccountRepository bankAccountRepository)
         {
@@ -32,7 +33,7 @@ namespace BankSimulation.Infrastructure.Services
 
             var bankAccount = new BankAccount 
             { 
-                Number = await GenerateBankAccountNumberAsync(),
+                Number = await GenerateBankAccountNumberAsync(BankAcountNumberLength),
                 Currency = bankAccountCurrency,
                 UserId = userId, 
             };
@@ -86,12 +87,15 @@ namespace BankSimulation.Infrastructure.Services
             await _userRepository.SaveChangesAsync();
         }
 
-        private async Task<string> GenerateBankAccountNumberAsync()
+        private async Task<string> GenerateBankAccountNumberAsync(byte length)
         {
+            var minBankAccountNumber = (int)Math.Pow(10, length - 1);
+            var maxBankAccountNumber = (int)Math.Pow(10, length) - 1;
+
             string generatedBankAccountNumber;
             do 
             {
-                generatedBankAccountNumber = _random.Next(100_000, 999_999).ToString();
+                generatedBankAccountNumber = _random.Next(minBankAccountNumber, maxBankAccountNumber).ToString();
             } while (await _bankAccountRepository.AlreadyExistsAsync(generatedBankAccountNumber));
 
             return generatedBankAccountNumber;
