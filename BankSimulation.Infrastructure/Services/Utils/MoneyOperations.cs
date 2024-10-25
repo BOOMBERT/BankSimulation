@@ -14,9 +14,9 @@ namespace BankSimulation.Infrastructure.Services.Utils
         public MoneyOperations(IConfiguration configuration, HttpClient httpClient)
         {
             _httpClient = httpClient;
-            _exchangeCurrenciesApiKey = configuration["MySettings:ExchangeCurrenciesApiKey"] 
+            _exchangeCurrenciesApiKey = configuration["ExchangeCurrenciesSettings:ApiKey"] 
                 ?? throw new ArgumentNullException("The ExchangeCurrenciesApiKey cannot be null.");
-            _exchangeCurrenciesApiUrl = configuration["MySettings:ExchangeCurrenciesApiUrl"] 
+            _exchangeCurrenciesApiUrl = configuration["ExchangeCurrenciesSettings:ApiUrl"] 
                 ?? throw new ArgumentNullException("The ExchangeCurrenciesApiUrl cannot be null.");
         }
 

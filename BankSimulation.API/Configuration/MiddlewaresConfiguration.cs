@@ -14,6 +14,8 @@ namespace BankSimulation.API.Configuration
                 app.UseSwaggerUI();
             }
 
+            app.ApplyMigrations();
+
             app.UseHttpsRedirection();
 
             app.UseAuthentication();

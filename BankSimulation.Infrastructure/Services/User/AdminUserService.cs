@@ -5,7 +5,6 @@ using BankSimulation.Application.Exceptions.User;
 using BankSimulation.Application.Interfaces.Repositories;
 using BankSimulation.Application.Interfaces.Services;
 using BankSimulation.Application.Validators.User;
-using BankSimulation.Infrastructure.Repositories;
 using BankSimulation.Infrastructure.Services.Utils;
 using Microsoft.AspNetCore.JsonPatch;
 

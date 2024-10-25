@@ -73,12 +73,12 @@ namespace BankSimulation.Infrastructure.Services.Utils
 
         public RefreshToken GenerateRefreshToken()
         {
-            if (!int.TryParse(_configuration["JwtSettings:RefreshToken:ExpirationInDays"], out var expiresInDays))
+            if (!int.TryParse(_configuration["JwtSettings:RefreshToken:ExpirationInMinutes"], out var expiresInMinutes))
             {
                 throw new ArgumentException("Invalid expiration time for refresh token.");
             }
 
-            var expires = TimeSpan.FromDays(expiresInDays);
+            var expires = TimeSpan.FromMinutes(expiresInMinutes);
 
             var refreshToken = new RefreshToken
             {

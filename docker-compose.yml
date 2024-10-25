@@ -1,0 +1,33 @@
+networks:
+    banksimulation-backend-network:
+
+services:
+  banksimulation.database:
+    image: mcr.microsoft.com/mssql/server:2022-CU15-ubuntu-22.04
+    container_name: banksimulation-database
+    ports:
+        - 1433:1433
+    environment:
+        - ACCEPT_EULA=Y
+        - MSSQL_SA_PASSWORD=StrongPass1!
+    networks:
+        - banksimulation-backend-network
+    volumes:
+        - db_data:/var/opt/mssql
+
+  banksimulation.api:
+    image: ${DOCKER_REGISTRY-}banksimulation-api
+    container_name: banksimulation-api
+    build:
+      context: .
+      dockerfile: BankSimulation.API/Dockerfile
+    networks:
+        - banksimulation-backend-network
+    volumes:
+        - app_logs:/app/Logs:rw
+    depends_on:
+        - banksimulation.database
+
+volumes:
+    db_data:
+    app_logs:
