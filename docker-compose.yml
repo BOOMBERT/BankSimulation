@@ -19,8 +19,13 @@ services:
     image: ${DOCKER_REGISTRY-}banksimulation-api
     container_name: banksimulation-api
     build:
-      context: .
-      dockerfile: BankSimulation.API/Dockerfile
+        context: .
+        dockerfile: BankSimulation.API/Dockerfile
+    environment:
+        - ADMIN_FIRST_NAME=admin
+        - ADMIN_LAST_NAME=admin 
+        - ADMIN_EMAIL=admin@admin.com
+        - ADMIN_PASSWORD=adminA1!
     networks:
         - banksimulation-backend-network
     volumes:

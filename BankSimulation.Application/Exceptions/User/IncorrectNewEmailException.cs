@@ -7,7 +7,7 @@ namespace BankSimulation.Application.Exceptions.User
         public IncorrectNewEmailException(
             string errorContext,
             string title = "Incorrect Email",
-            string details = "The new email cannot be the same as the current email.")
+            string details = "The provided new email is incorrect.")
             : base(title, StatusCodes.Status400BadRequest, details, errorContext) { }
     }
 }

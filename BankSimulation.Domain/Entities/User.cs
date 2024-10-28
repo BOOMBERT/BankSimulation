@@ -15,6 +15,6 @@ namespace BankSimulation.Domain.Entities
         public SecurityQuestion SecurityQuestion { get; set; }
         public ICollection<BankAccount> BankAccounts { get; set; } = new List<BankAccount>();
         public RefreshToken RefreshToken { get; set; }
-        public ICollection<AccessRole> AccessRoles { get; set; } = new List<AccessRole>();
+        public IList<AccessRole> AccessRoles { get; set; } = new List<AccessRole>();
     }
 }

@@ -31,6 +31,16 @@ namespace BankSimulation.API.Controllers
             return CreatedAtAction("GetUserById", "AdminUser", new { userId = createdUser.Id }, createdUser);
         }
 
+        [HttpPost("register-admin")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ErrorDetails))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<UserDto>> RegisterAdmin()
+        {
+            var createdUser = await _userService.CreateAdminAsync();
+            return CreatedAtAction("GetUserById", "AdminUser", new { userId = createdUser.Id }, createdUser);
+        }
+
         [HttpPost("login")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ErrorDetails))]
@@ -43,7 +53,7 @@ namespace BankSimulation.API.Controllers
             return Ok(accessToken);
         }
 
-        [HttpPost("refresh"), Authorize(Roles = nameof(AccessRole.Customer))]
+        [HttpPost("refresh"), Authorize(Roles = nameof(AccessRole.Customer) + "," + nameof(AccessRole.Admin))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ErrorDetails))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

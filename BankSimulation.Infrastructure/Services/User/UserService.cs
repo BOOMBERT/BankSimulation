@@ -3,6 +3,7 @@ using BankSimulation.Application.Dtos.User;
 using BankSimulation.Application.Exceptions.User;
 using BankSimulation.Application.Interfaces.Repositories;
 using BankSimulation.Application.Interfaces.Services;
+using BankSimulation.Application.Validators.User;
 using BankSimulation.Domain.Entities;
 using BankSimulation.Domain.Enums;
 using BankSimulation.Infrastructure.Services.Utils;
@@ -22,7 +23,7 @@ namespace BankSimulation.Infrastructure.Services
             _userAuthService = userAuthService ?? throw new ArgumentNullException(nameof(userAuthService));
         }
 
-        public async Task<UserDto> CreateUserAsync(CreateUserDto user)
+        public async Task<UserDto> CreateUserAsync(CreateUserDto user, AccessRole role = AccessRole.Customer)
         {
             if (await _userRepository.AlreadyExistsAsync(user.Email))
             {
@@ -31,12 +32,30 @@ namespace BankSimulation.Infrastructure.Services
 
             var userEntity = _mapper.Map<User>(user);
             userEntity.Password = SecurityService.HashText(user.Password);
-            userEntity.AccessRoles.Add(AccessRole.Customer);
+            userEntity.AccessRoles.Add(role);
 
             await _userRepository.AddAsync(userEntity);
             await _userRepository.SaveChangesAsync();
 
             return _mapper.Map<UserDto>(userEntity);
+        }
+
+        public async Task<UserDto> CreateAdminAsync()
+        {
+            var createUser = new CreateUserDto
+                (
+                    FirstName: Environment.GetEnvironmentVariable("ADMIN_FIRST_NAME") ?? "",
+                    LastName: Environment.GetEnvironmentVariable("ADMIN_LAST_NAME") ?? "",
+                    Email: Environment.GetEnvironmentVariable("ADMIN_EMAIL") ?? "",
+                    Password: Environment.GetEnvironmentVariable("ADMIN_PASSWORD") ?? ""
+                );
+
+            var validator = new CreateUserDtoValidator();
+            var validationResult = validator.Validate(createUser);
+
+            UtilsService.CheckValidationResult(validationResult);
+
+            return await CreateUserAsync(createUser, AccessRole.Admin);
         }
 
         public async Task<UserDto> GetUserViaAccessTokenAsync(string accessToken)
@@ -64,7 +83,8 @@ namespace BankSimulation.Infrastructure.Services
 
         public async Task UpdateUserEmailAsync(string accessToken, string currentEmail, string newEmail)
         {
-            if (currentEmail == newEmail) 
+            if (currentEmail == newEmail || string.Equals(
+                newEmail, Environment.GetEnvironmentVariable("ADMIN_EMAIL"), StringComparison.OrdinalIgnoreCase)) 
             { 
                 throw new IncorrectNewEmailException(newEmail); 
             }
