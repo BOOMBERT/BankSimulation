@@ -9,6 +9,8 @@ namespace BankSimulation.API.Middlewares
 {
     internal sealed class ErrorHandlingMiddleware : IMiddleware
     {
+        private const int MaxQueryLength = 256;
+
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
             try
@@ -38,7 +40,6 @@ namespace BankSimulation.API.Middlewares
         }
         private async Task LogAndRespondAsync(HttpContext context, int statusCode, string title, string? errorContext, object details, LogEventLevel logLevel)
         {
-            int maxQueryLength = 256;
             string query = context.Request.QueryString.ToString();
 
             var log = new LogDetails(
@@ -46,7 +47,7 @@ namespace BankSimulation.API.Middlewares
                 context.Request.Path,
                 errorContext,
                 details,
-                query.Length > maxQueryLength ? query[..maxQueryLength] : query,
+                query.Length > MaxQueryLength ? query[..MaxQueryLength] : query,
                 context.TraceIdentifier
             );
 

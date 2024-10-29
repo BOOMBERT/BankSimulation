@@ -14,8 +14,8 @@ else
 builder.AddLoggingConfiguration();
 
 builder.Services.AddConfigurationSwagger();
-builder.Services.AddConfigurationDbContext(builder.Configuration);
-builder.Services.AddConfigurationAuthentication(builder.Configuration);
+builder.Services.AddConfigurationDbContext(builder.Configuration["ConnectionStrings:BankSimulationDatabase"]!);
+builder.Services.AddConfigurationAuthentication(builder.Configuration["JwtSettings:Key"]!);
 builder.Services.AddConfigurationServices();
 
 var app = builder.Build();

@@ -1,23 +1,21 @@
 ﻿using BankSimulation.Domain.Enums;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
-using Microsoft.Extensions.Configuration;
+using BankSimulation.Application.Interfaces.Services;
 
 namespace BankSimulation.Infrastructure.Services.Utils
 {
-    internal class MoneyOperations
+    public sealed class MoneyOperationsService : IMoneyOperationsService
     {
         private readonly HttpClient _httpClient;
         private readonly string _exchangeCurrenciesApiKey;
         private readonly string _exchangeCurrenciesApiUrl;
 
-        public MoneyOperations(IConfiguration configuration, HttpClient httpClient)
+        public MoneyOperationsService(HttpClient httpClient, string exchangeCurrenciesApiKey, string exchangeCurrenciesApiUrl)
         {
             _httpClient = httpClient;
-            _exchangeCurrenciesApiKey = configuration["ExchangeCurrenciesSettings:ApiKey"] 
-                ?? throw new ArgumentNullException("The ExchangeCurrenciesApiKey cannot be null.");
-            _exchangeCurrenciesApiUrl = configuration["ExchangeCurrenciesSettings:ApiUrl"] 
-                ?? throw new ArgumentNullException("The ExchangeCurrenciesApiUrl cannot be null.");
+            _exchangeCurrenciesApiKey = exchangeCurrenciesApiKey;
+            _exchangeCurrenciesApiUrl = exchangeCurrenciesApiUrl;
         }
 
         public async Task<decimal> ExchangeCurrencyAsync(decimal amount, Currency currentCurrency, Currency requiredCurrency)

@@ -2,7 +2,6 @@
 using BankSimulation.Application.Interfaces.Services;
 using BankSimulation.Domain.Entities;
 using BankSimulation.Domain.Enums;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -13,11 +12,17 @@ namespace BankSimulation.Infrastructure.Services.Utils
 {
     public class AuthService : IAuthService
     {
-        private readonly IConfiguration _configuration;
+        private readonly string _jwtKey;
+        private readonly string _accessTokenExpirationInMinutes;
+        private readonly string _refreshTokenExpirationInMinutes;
 
-        public AuthService(IConfiguration configuration)
+        private const string JwtSecurityAlgorithm = SecurityAlgorithms.HmacSha256;
+
+        public AuthService(string jwtKey, string accessTokenExpirationInMinutes, string refreshTokenExpirationInMinutes)
         {
-            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _jwtKey = jwtKey;
+            _accessTokenExpirationInMinutes = accessTokenExpirationInMinutes;
+            _refreshTokenExpirationInMinutes = refreshTokenExpirationInMinutes;
         }
 
         public IEnumerable<Claim> GetAllClaimsFromJwt(string token)
@@ -25,7 +30,7 @@ namespace BankSimulation.Infrastructure.Services.Utils
             var tokenHandler = new JwtSecurityTokenHandler();
             var jwtSecurityToken = tokenHandler.ReadToken(token) as JwtSecurityToken ?? throw new InvalidTokenFormatException(token);
 
-            if (!jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+            if (!jwtSecurityToken.Header.Alg.Equals(JwtSecurityAlgorithm, StringComparison.InvariantCultureIgnoreCase))
             {
                 throw new InvalidTokenFormatException(token);
             }
@@ -50,12 +55,11 @@ namespace BankSimulation.Infrastructure.Services.Utils
                 claims.Add(new Claim(ClaimTypes.Role, role.ToString()));
             }
 
-            var key = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(_configuration["JwtSettings:Key"]!));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtKey));
 
-            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var credentials = new SigningCredentials(key, JwtSecurityAlgorithm);
 
-            if (!int.TryParse(_configuration["JwtSettings:AccessToken:ExpirationInMinutes"], out var expiresInMinutes))
+            if (!int.TryParse(_accessTokenExpirationInMinutes, out var expiresInMinutes))
             {
                 throw new ArgumentException("Invalid expiration time for access token.");
             }
@@ -73,7 +77,7 @@ namespace BankSimulation.Infrastructure.Services.Utils
 
         public RefreshToken GenerateRefreshToken()
         {
-            if (!int.TryParse(_configuration["JwtSettings:RefreshToken:ExpirationInMinutes"], out var expiresInMinutes))
+            if (!int.TryParse(_refreshTokenExpirationInMinutes, out var expiresInMinutes))
             {
                 throw new ArgumentException("Invalid expiration time for refresh token.");
             }

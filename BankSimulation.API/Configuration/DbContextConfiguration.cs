@@ -5,10 +5,9 @@ namespace BankSimulation.API.Configuration
 {
     public static class DbContextConfiguration
     {
-        public static void AddConfigurationDbContext(this IServiceCollection services, IConfiguration configuration)
+        public static void AddConfigurationDbContext(this IServiceCollection services, string connectionString)
         {
-            services.AddDbContext<AppDbContext>(options 
-                => options.UseSqlServer(configuration["ConnectionStrings:BankSimulationDatabase"]));
+            services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
         }
     }
 }

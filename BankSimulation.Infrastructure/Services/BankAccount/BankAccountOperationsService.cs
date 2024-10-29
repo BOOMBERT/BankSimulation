@@ -4,8 +4,6 @@ using BankSimulation.Application.Interfaces.Repositories;
 using BankSimulation.Application.Interfaces.Services;
 using BankSimulation.Domain.Entities;
 using BankSimulation.Domain.Enums;
-using BankSimulation.Infrastructure.Services.Utils;
-using Microsoft.Extensions.Configuration;
 
 namespace BankSimulation.Infrastructure.Services
 {
@@ -14,27 +12,25 @@ namespace BankSimulation.Infrastructure.Services
         private readonly IBankAccountOperationsRepository _bankAccountOperationsRepository;
         private readonly IBankAccountRepository _bankAccountRepository;
         private readonly IUserAuthService _userAuthService;
-        private readonly MoneyOperations _moneyOperations;
-
+        private readonly IMoneyOperationsService _moneyOperationsService;
+        
         public BankAccountOperationsService(
             IBankAccountOperationsRepository bankAccountOperationsRepository,
             IBankAccountRepository bankAccountRepository,
             IUserAuthService userAuthService,
-            IConfiguration configuration,
-            HttpClient httpClient)
+            IMoneyOperationsService moneyOperationsService)
         {
-            _bankAccountOperationsRepository = bankAccountOperationsRepository
-                ?? throw new ArgumentNullException(nameof(bankAccountOperationsRepository));
+            _bankAccountOperationsRepository = bankAccountOperationsRepository ?? throw new ArgumentNullException(nameof(bankAccountOperationsRepository));
             _bankAccountRepository = bankAccountRepository ?? throw new ArgumentNullException(nameof(bankAccountRepository));
             _userAuthService = userAuthService ?? throw new ArgumentNullException(nameof(userAuthService));
-            _moneyOperations = new MoneyOperations(configuration, httpClient);
+            _moneyOperationsService = moneyOperationsService;
         }
 
         public async Task TransferMoneyAsync(string accessToken, string senderBankAccountNumber, string recipientBankAccountNumber, decimal amount)
         {
             if (amount <= 0)
             {
-                throw new IncorrectAmountToTransferException($"{senderBankAccountNumber} - {amount}");
+                throw new IncorrectAmountToTransferException($"{senderBankAccountNumber} : {amount}");
             }
 
             if (senderBankAccountNumber == recipientBankAccountNumber)
@@ -57,7 +53,7 @@ namespace BankSimulation.Infrastructure.Services
 
             if (senderBankAccountCurrencyInDb != recipientBankAccountCurrencyInDb)
             {
-                amount = await _moneyOperations.ExchangeCurrencyAsync(amount, senderBankAccountCurrencyInDb, recipientBankAccountCurrencyInDb);
+                amount = await _moneyOperationsService.ExchangeCurrencyAsync(amount, senderBankAccountCurrencyInDb, recipientBankAccountCurrencyInDb);
             }
 
             await _bankAccountRepository.DepositMoneyAsync(amount, recipientBankAccountNumber);

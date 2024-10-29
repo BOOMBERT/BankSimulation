@@ -5,8 +5,6 @@ using BankSimulation.Application.Interfaces.Repositories;
 using BankSimulation.Application.Interfaces.Services;
 using BankSimulation.Domain.Entities;
 using BankSimulation.Domain.Enums;
-using BankSimulation.Infrastructure.Services.Utils;
-using Microsoft.Extensions.Configuration;
 
 namespace BankSimulation.Infrastructure.Services
 {
@@ -15,27 +13,25 @@ namespace BankSimulation.Infrastructure.Services
         private readonly IUserRepository _userRepository;
         private readonly IBankAccountRepository _bankAccountRepository;
         private readonly IBankAccountOperationsRepository _bankAccountOperationsRepository;
-        private readonly MoneyOperations _moneyOperations;
+        private readonly IMoneyOperationsService _moneyOperationsService;
 
         public AdminBankAccountOperationsService(
             IUserRepository userRepository,
             IBankAccountRepository bankAccountRepository,
             IBankAccountOperationsRepository bankAccountOperationsRepository,
-            IConfiguration configuration,
-            HttpClient httpClient)
+            IMoneyOperationsService moneyOperationsService)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _bankAccountRepository = bankAccountRepository ?? throw new ArgumentNullException(nameof(bankAccountRepository));
-            _bankAccountOperationsRepository = bankAccountOperationsRepository
-                ?? throw new ArgumentNullException(nameof(bankAccountOperationsRepository));
-            _moneyOperations = new MoneyOperations(configuration, httpClient);
+            _bankAccountOperationsRepository = bankAccountOperationsRepository ?? throw new ArgumentNullException(nameof(bankAccountOperationsRepository));
+            _moneyOperationsService = moneyOperationsService;
         }
 
         public async Task DepositUserMoneyAsync(Guid userId, string bankAccountNumber, decimal amount, Currency currency)
         {
             if (amount <= 0)
             {
-                throw new IncorrectAmountToDepositException($"{bankAccountNumber} - {amount}");
+                throw new IncorrectAmountToDepositException($"{bankAccountNumber} : {amount}");
             }
 
             var bankAccountCurrencyInDb = await GetValidatedUserBankAccountCurrencyAsync(userId, bankAccountNumber);
@@ -47,7 +43,7 @@ namespace BankSimulation.Infrastructure.Services
 
             if (currency != bankAccountCurrencyInDb)
             {
-                amount = await _moneyOperations.ExchangeCurrencyAsync(amount, currency, bankAccountCurrencyInDb);
+                amount = await _moneyOperationsService.ExchangeCurrencyAsync(amount, currency, bankAccountCurrencyInDb);
             }
 
             await _bankAccountRepository.DepositMoneyAsync(amount, bankAccountNumber);
@@ -65,14 +61,14 @@ namespace BankSimulation.Infrastructure.Services
         {
             if (amount <= 0)
             {
-                throw new IncorrectAmountToWithdrawException($"{bankAccountNumber} - {amount}");
+                throw new IncorrectAmountToWithdrawException($"{bankAccountNumber} : {amount}");
             }
 
             var bankAccountCurrencyInDb = await GetValidatedUserBankAccountCurrencyAsync(userId, bankAccountNumber);
 
             if (currency != bankAccountCurrencyInDb)
             {
-                amount = await _moneyOperations.ExchangeCurrencyAsync(amount, currency, bankAccountCurrencyInDb);
+                amount = await _moneyOperationsService.ExchangeCurrencyAsync(amount, currency, bankAccountCurrencyInDb);
             }
 
             if (await _bankAccountRepository.GetBalanceAsync(bankAccountNumber) < amount)

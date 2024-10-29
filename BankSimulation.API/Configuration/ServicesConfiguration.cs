@@ -42,13 +42,37 @@ namespace BankSimulation.API.Configuration
 
             services.AddHttpClient();
 
-            services.AddScoped<ErrorHandlingMiddleware>();
+
+            services.AddSingleton<IAuthService, AuthService>(provider =>
+            {
+                var config = provider.GetRequiredService<IConfiguration>();
+                return new AuthService(
+                    config["JwtSettings:Key"] ?? throw new ArgumentNullException("The JwtSettingsKey cannot be null."),
+                    config["JwtSettings:AccessToken:ExpirationInMinutes"] 
+                    ?? throw new ArgumentNullException("The JwtSettingsAccessTokenExpirationInMinutes cannot be null."), 
+                    config["JwtSettings:RefreshToken:ExpirationInMinutes"] 
+                    ?? throw new ArgumentNullException("The JwtSettingsRefreshTokenExpirationInMinutes cannot be null.")
+                    );
+            });
+            
+            services.AddSingleton<IMoneyOperationsService, MoneyOperationsService>(provider =>
+            {
+                var httpClientFactory = provider.GetRequiredService<IHttpClientFactory>();
+                var config = provider.GetRequiredService<IConfiguration>();
+                return new MoneyOperationsService(
+                    httpClientFactory.CreateClient(),
+                    config["ExchangeCurrenciesSettings:ApiKey"] ?? throw new ArgumentNullException("The ExchangeCurrenciesApiKey cannot be null."),
+                    config["ExchangeCurrenciesSettings:ApiUrl"] ?? throw new ArgumentNullException("The ExchangeCurrenciesApiUrl cannot be null.")
+                    );
+            });
+
+
+            services.AddTransient<ErrorHandlingMiddleware>();
+
 
             services.AddScoped<IUserService, UserService>();
 
             services.AddScoped<IUserRepository, UserRepository>();
-
-            services.AddScoped<IAuthService, AuthService>();
             
             services.AddScoped<IUserAuthService, UserAuthService>();
 

@@ -7,7 +7,7 @@ namespace BankSimulation.API.Configuration
 {
     public static class AuthenticationConfiguration
     {
-        public static void AddConfigurationAuthentication(this IServiceCollection services, IConfiguration configuration)
+        public static void AddConfigurationAuthentication(this IServiceCollection services, string jwtKey)
         {
             services.AddAuthentication(x =>
             {
@@ -18,8 +18,7 @@ namespace BankSimulation.API.Configuration
             {
                 x.TokenValidationParameters = new TokenValidationParameters
                 {
-                    IssuerSigningKey = new SymmetricSecurityKey
-                    (Encoding.UTF8.GetBytes(configuration["JwtSettings:Key"]!)),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
                     ValidateAudience = false,
                     ValidateIssuer = false,
                     ValidateLifetime = true,
