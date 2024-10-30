@@ -23,7 +23,7 @@ namespace BankSimulation.Infrastructure.Services
             _bankAccountOperationsRepository = bankAccountOperationsRepository ?? throw new ArgumentNullException(nameof(bankAccountOperationsRepository));
             _bankAccountRepository = bankAccountRepository ?? throw new ArgumentNullException(nameof(bankAccountRepository));
             _userAuthService = userAuthService ?? throw new ArgumentNullException(nameof(userAuthService));
-            _moneyOperationsService = moneyOperationsService;
+            _moneyOperationsService = moneyOperationsService ?? throw new ArgumentNullException(nameof(moneyOperationsService));
         }
 
         public async Task TransferMoneyAsync(string accessToken, string senderBankAccountNumber, string recipientBankAccountNumber, decimal amount)

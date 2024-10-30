@@ -36,12 +36,7 @@ namespace BankSimulation.API.Configuration
         {
             RunInDbContextScope(app, dbContext =>
             {
-                dbContext.Database.EnsureCreated();
-
-                if (dbContext.Database.GetPendingMigrations().Any())
-                {
-                    dbContext.Database.Migrate();
-                }
+                dbContext.Database.Migrate();
             });
         }
     }

@@ -24,7 +24,7 @@ namespace BankSimulation.Infrastructure.Services
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _bankAccountRepository = bankAccountRepository ?? throw new ArgumentNullException(nameof(bankAccountRepository));
             _bankAccountOperationsRepository = bankAccountOperationsRepository ?? throw new ArgumentNullException(nameof(bankAccountOperationsRepository));
-            _moneyOperationsService = moneyOperationsService;
+            _moneyOperationsService = moneyOperationsService ?? throw new ArgumentNullException(nameof(moneyOperationsService));
         }
 
         public async Task DepositUserMoneyAsync(Guid userId, string bankAccountNumber, decimal amount, Currency currency)
