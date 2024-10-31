@@ -31,6 +31,11 @@ namespace BankSimulation.Infrastructure.Services
                 throw new UserNotFoundException(userId.ToString());
             }
 
+            if (await _userRepository.AlreadyDeletedAsync(userId))
+            {
+                throw new UserAlreadyDeletedException(userId.ToString());
+            }
+
             var bankAccount = new BankAccount 
             { 
                 Number = await GenerateBankAccountNumberAsync(BankAcountNumberLength),
