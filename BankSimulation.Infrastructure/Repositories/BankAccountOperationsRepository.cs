@@ -1,6 +1,6 @@
-﻿using BankSimulation.Application.Interfaces.Repositories;
-using BankSimulation.Domain.Entities;
-using BankSimulation.Infrastructure.DbContexts;
+﻿using BankSimulation.Domain.Entities;
+using BankSimulation.Domain.Repositories;
+using BankSimulation.Infrastructure.Persistence;
 
 namespace BankSimulation.Infrastructure.Repositories
 {
@@ -33,7 +33,7 @@ namespace BankSimulation.Infrastructure.Repositories
 
         public async Task<bool> SaveChangesAsync()
         {
-            return (await _context.SaveChangesAsync() >= 0);
+            return (await _context.SaveChangesAsync() > 0);
         }
     }
 }

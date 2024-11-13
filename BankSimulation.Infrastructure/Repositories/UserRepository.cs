@@ -1,10 +1,7 @@
-﻿using AutoMapper;
-using AutoMapper.QueryableExtensions;
-using BankSimulation.Application.Dtos.User;
-using BankSimulation.Application.Interfaces.Repositories;
-using BankSimulation.Domain.Entities;
+﻿using BankSimulation.Domain.Entities;
 using BankSimulation.Domain.Enums;
-using BankSimulation.Infrastructure.DbContexts;
+using BankSimulation.Domain.Repositories;
+using BankSimulation.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace BankSimulation.Infrastructure.Repositories
@@ -12,12 +9,10 @@ namespace BankSimulation.Infrastructure.Repositories
     public class UserRepository : IUserRepository
     {
         private readonly AppDbContext _context;
-        private readonly IMapper _mapper;
 
-        public UserRepository(AppDbContext context, IMapper mapper)
+        public UserRepository(AppDbContext context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
-            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
         public async Task AddAsync(User user)
@@ -26,43 +21,29 @@ namespace BankSimulation.Infrastructure.Repositories
                 .AddAsync(user);
         }
 
-        public async Task<User?> GetAsync(Guid userId)
+        public async Task<User?> GetAsync(Guid userId, bool trackChanges)
         {
-            return await _context.Users
+            var query = _context.Users.AsQueryable();
+
+            if (!trackChanges) { query = query.AsNoTracking(); }
+
+            return await query
                 .SingleOrDefaultAsync(u => u.Id == userId);
         }
 
-        public async Task<UserDto?> GetDtoAsync(Guid userId)
+        public async Task<User?> GetAsync(string email, bool trackChanges)
         {
-            return await _context.Users
-                .AsNoTracking()
-                .Where(u => u.Id == userId)
-                .ProjectTo<UserDto>(_mapper.ConfigurationProvider)
-                .SingleOrDefaultAsync();
-        }
+            var query = _context.Users.AsQueryable();
 
-        public async Task<UserDto?> GetDtoAsync(string email)
-        {
-            return await _context.Users
-               .AsNoTracking()
-               .Where(u => u.Email == email)
-               .ProjectTo<UserDto>(_mapper.ConfigurationProvider)
-               .SingleOrDefaultAsync();
-        }
+            if (!trackChanges) { query = query.AsNoTracking(); }
 
-        public async Task<AuthUserDto?> GetAuthDataAsync(string email)
-        {
-            return await _context.Users
-                .AsNoTracking()
-                .Where(u => u.Email == email)
-                .ProjectTo<AuthUserDto>(_mapper.ConfigurationProvider)
-                .SingleOrDefaultAsync();
+            return await query
+                .SingleOrDefaultAsync(u => u.Email == email);
         }
 
         public async Task<string?> GetPasswordAsync(Guid userId)
         {
             return await _context.Users
-                .AsNoTracking()
                 .Where(u => u.Id == userId)
                 .Select(u => u.Password)
                 .SingleOrDefaultAsync();
@@ -71,47 +52,46 @@ namespace BankSimulation.Infrastructure.Repositories
         public async Task<string?> GetEmailAsync(Guid userId)
         {
             return await _context.Users
-                .AsNoTracking()
                 .Where(u => u.Id == userId)
                 .Select(u => u.Email)
                 .SingleOrDefaultAsync();
         }
 
-        public async Task<IEnumerable<AccessRole>?> GetAccessRolesAsync(Guid userId)
+        public async Task<IEnumerable<AccessRole>> GetAccessRolesAsync(Guid userId)
         {
             return await _context.Users
-                .AsNoTracking()
                 .Where(u => u.Id == userId)
                 .Select(u => u.AccessRoles)
-                .SingleOrDefaultAsync();
+                .SingleOrDefaultAsync() ?? Enumerable.Empty<AccessRole>();
         }
 
-        public async Task UpdateAsync(Guid userId, AdminUpdateUserDto updateUserDto)
+        public async Task UpdateAsync(Guid userId, string newFirstName, string newLastName, string newEmail, string newPassword)
         {
             await _context.Users
                 .Where(u => u.Id == userId)
                 .ExecuteUpdateAsync(u => u
-                .SetProperty(x => x.FirstName, updateUserDto.FirstName)
-                .SetProperty(x => x.LastName, updateUserDto.LastName)
-                .SetProperty(x => x.Email, updateUserDto.Email)
-                .SetProperty(x => x.Password, updateUserDto.Password));
+                .SetProperty(x => x.FirstName, newFirstName)
+                .SetProperty(x => x.LastName, newLastName)
+                .SetProperty(x => x.Email, newEmail)
+                .SetProperty(x => x.Password, newPassword));
         }
 
         public async Task UpdatePasswordAsync(Guid userId, string newPassword)
         {
             await _context.Users
                 .Where(u => u.Id == userId)
-                .ExecuteUpdateAsync(u => u.SetProperty(x => x.Password, newPassword));
+                .ExecuteUpdateAsync(u => u
+                .SetProperty(x => x.Password, newPassword));
         }
 
-        public async Task UpdateUserEmailAsync(Guid userId, string newEmail)
+        public async Task UpdateEmailAsync(Guid userId, string newEmail)
         {
             await _context.Users
                 .Where(u => u.Id == userId)
                 .ExecuteUpdateAsync(u => u.SetProperty(x => x.Email, newEmail));
         }
 
-        public async Task DeleteAsync(Guid userId)
+        public async Task SoftDeleteAsync(Guid userId)
         {
             await _context.Users
                 .Where(u => u.Id == userId)
@@ -121,7 +101,6 @@ namespace BankSimulation.Infrastructure.Repositories
         public async Task<bool> AlreadyDeletedAsync(Guid userId)
         {
             return await _context.Users
-                .AsNoTracking()
                 .Where(u => u.Id == userId)
                 .Select(u => u.IsDeleted)
                 .SingleOrDefaultAsync();
@@ -130,29 +109,25 @@ namespace BankSimulation.Infrastructure.Repositories
         public async Task<bool> AlreadyExistsAsync(Guid userId)
         {
             return await _context.Users
-                .AsNoTracking()
                 .AnyAsync(u => u.Id == userId);
         }
 
         public async Task<bool> AlreadyExistsAsync(string email)
         {
             return await _context.Users
-                .AsNoTracking()
                 .AnyAsync(u => u.Email == email);
         }
 
-        public async Task<bool> AlreadyExistsExceptSpecificUserAsync(string email, Guid userId)
+        public async Task<bool> AlreadyExistsExceptSpecificUserAsync(string email, Guid userIdToExcept)
         {
-            var query = await _context.Users
-                .Where(u => u.Email == email)
-                .SingleOrDefaultAsync();
-
-            return !(query == null || query.Id == userId);
+            return await _context.Users
+                .Where(u => u.Email == email && u.Id != userIdToExcept)
+                .AnyAsync();
         }
 
         public async Task<bool> SaveChangesAsync()
         {
-            return (await _context.SaveChangesAsync() >= 0);
+            return (await _context.SaveChangesAsync() > 0);
         }
     }
 }

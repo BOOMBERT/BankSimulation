@@ -1,26 +1,22 @@
-using BankSimulation.API.Configuration;
+using BankSimulation.API.Extensions;
+using BankSimulation.Application.Extensions;
+using BankSimulation.Infrastructure.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-if (builder.Environment.IsDevelopment())
-{
-    builder.Configuration.AddJsonFile("appsettings.Development.json");
-}
-else
-{
-    builder.Configuration.AddJsonFile("appsettings.json");
-}
-
-builder.AddLoggingConfiguration();
-
-builder.Services.AddConfigurationSwagger();
-builder.Services.AddConfigurationDbContext(builder.Configuration["ConnectionStrings:BankSimulationDatabase"]!);
-builder.Services.AddConfigurationAuthentication(builder.Configuration["JwtSettings:Key"]!);
-builder.Services.AddConfigurationServices();
+builder.AddPresentation();
+builder.Services.AddApplication();
+builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 
-app.UseConfiguredMiddlewares();
+app.UseStartupConfiguration();
+
+app.UseHttpsRedirection();
+
+app.UseAuthentication();
+
+app.UseAuthorization();
 
 app.MapControllers();
 

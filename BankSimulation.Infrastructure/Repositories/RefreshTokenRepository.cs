@@ -1,7 +1,6 @@
-﻿using BankSimulation.Application.Dtos.Auth;
-using BankSimulation.Application.Interfaces.Repositories;
-using BankSimulation.Domain.Entities;
-using BankSimulation.Infrastructure.DbContexts;
+﻿using BankSimulation.Domain.Entities;
+using BankSimulation.Domain.Repositories;
+using BankSimulation.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace BankSimulation.Infrastructure.Repositories
@@ -21,26 +20,29 @@ namespace BankSimulation.Infrastructure.Repositories
                 .AddAsync(refreshToken);
         }
 
-        public async Task<RefreshTokenDto?> GetAsync(Guid userId)
+        public async Task<RefreshToken?> GetAsync(Guid userId, bool trackChanges)
         {
-            return await _context.RefreshTokens
-                .AsNoTracking()
+            var query = _context.RefreshTokens.AsQueryable();
+
+            if (!trackChanges) { query = query.AsNoTracking(); }
+
+            return await query
                 .Where(rt => rt.UserId == userId)
-                .Select(rt => new RefreshTokenDto(rt.Token, rt.ExpirationDate))
                 .SingleOrDefaultAsync();
         }
 
-        public async Task DeleteAsync(Guid userId)
+        public async Task UpdateAsync(Guid userId, string newRefreshToken, DateTime newExpirationDate)
         {
             await _context.RefreshTokens
                 .Where(rt => rt.UserId == userId)
-                .ExecuteDeleteAsync();
+                .ExecuteUpdateAsync(rt => rt
+                .SetProperty(x => x.Token, newRefreshToken)
+                .SetProperty(x => x.ExpirationDate, newExpirationDate));
         }
 
         public async Task<bool> AlreadyExistsAsync(Guid userId)
         {
             return await _context.RefreshTokens
-                .AsNoTracking()
                 .AnyAsync(rt => rt.UserId == userId);
         }
     }

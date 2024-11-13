@@ -1,6 +1,6 @@
-﻿using BankSimulation.Application.Dtos.Responses;
-using BankSimulation.Application.Exceptions.Auth;
-using BankSimulation.Application.Interfaces;
+﻿using BankSimulation.Application.Auth.Exceptions;
+using BankSimulation.Application.Common.Dtos;
+using BankSimulation.Application.Common.Interfaces;
 using Serilog;
 using Serilog.Events;
 using System.Text.Json;

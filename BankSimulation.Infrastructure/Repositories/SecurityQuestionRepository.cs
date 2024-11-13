@@ -1,7 +1,6 @@
-﻿using BankSimulation.Application.Dtos.SecurityQuestion;
-using BankSimulation.Application.Interfaces.Repositories;
-using BankSimulation.Domain.Entities;
-using BankSimulation.Infrastructure.DbContexts;
+﻿using BankSimulation.Domain.Entities;
+using BankSimulation.Domain.Repositories;
+using BankSimulation.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace BankSimulation.Infrastructure.Repositories
@@ -21,31 +20,31 @@ namespace BankSimulation.Infrastructure.Repositories
                 .AddAsync(securityQuestion);
         }
 
-        public async Task<SecurityQuestionOutDto?> GetQuestionAsync(Guid userId)
+        public async Task<SecurityQuestion?> GetAsync(Guid userId, bool trackChanges)
         {
-            return await _context.SecurityQuestions
-                .AsNoTracking()
-                .Where(sq => sq.UserId == userId)
-                .Select(sq => new SecurityQuestionOutDto(sq.Id, sq.Question))
-                .SingleOrDefaultAsync();
+            var query = _context.SecurityQuestions.AsQueryable();
+
+            if (!trackChanges) { query = query.AsNoTracking(); }
+
+            return await query
+                .SingleOrDefaultAsync(sq => sq.UserId == userId);
         }
 
         public async Task<string?> GetAnswerAsync(Guid userId)
         {
             return await _context.SecurityQuestions
-                .AsNoTracking()
                 .Where(sq => sq.UserId == userId)
                 .Select(sq => sq.Answer)
                 .SingleOrDefaultAsync();
         }
 
-        public async Task UpdateAsync(Guid userId, CreateSecurityQuestionDto newSecurityQuestion)
+        public async Task UpdateAsync(Guid userId, string newQuestion, string newAnswer)
         {
             await _context.SecurityQuestions
                 .Where(sq => sq.UserId == userId)
                 .ExecuteUpdateAsync(sq => sq
-                .SetProperty(sq => sq.Question, newSecurityQuestion.Question)
-                .SetProperty(sq => sq.Answer, newSecurityQuestion.Answer));
+                .SetProperty(sq => sq.Question, newQuestion)
+                .SetProperty(sq => sq.Answer, newAnswer));
         }
 
         public async Task DeleteAsync(Guid userId)
@@ -58,7 +57,6 @@ namespace BankSimulation.Infrastructure.Repositories
         public async Task<bool> AlreadyExistsAsync(Guid userId)
         {
             return await _context.SecurityQuestions
-                .AsNoTracking()
                 .AnyAsync(sq => sq.UserId == userId);
         }
     }
