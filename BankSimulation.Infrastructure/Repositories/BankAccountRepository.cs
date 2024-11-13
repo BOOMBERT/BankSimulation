@@ -71,7 +71,7 @@ namespace BankSimulation.Infrastructure.Repositories
         {
             return await _context.BankAccounts
                 .Where(ba => ba.Number == bankAccountNumber)
-                .Select(ba => ba.Money)
+                .Select(ba => ba.Balance)
                 .SingleOrDefaultAsync();
         }
 
@@ -108,7 +108,7 @@ namespace BankSimulation.Infrastructure.Repositories
             await _context.BankAccounts
                 .Where(ba => ba.Number == bankAccountNumber)
                 .ExecuteUpdateAsync(ba => ba
-                .SetProperty(x => x.Money, x => x.Money + amount));
+                .SetProperty(x => x.Balance, x => x.Balance + amount));
         }
 
         public async Task WithdrawMoneyAsync(decimal amount, string bankAccountNumber)
@@ -116,7 +116,7 @@ namespace BankSimulation.Infrastructure.Repositories
             await _context.BankAccounts
                 .Where(ba => ba.Number == bankAccountNumber)
                 .ExecuteUpdateAsync(ba => ba
-                .SetProperty(x => x.Money, x => x.Money - amount));
+                .SetProperty(x => x.Balance, x => x.Balance - amount));
         }
     }
 }

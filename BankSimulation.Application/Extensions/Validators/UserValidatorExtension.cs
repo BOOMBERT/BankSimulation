@@ -22,6 +22,7 @@ namespace BankSimulation.Application.Extensions.Validators
         {
             return ruleBuilder
                 .NotEmpty().WithMessage("Email is required.")
+                .MaximumLength(254).WithMessage("Email address must be at most 254 characters long.")
                 .EmailAddress().WithMessage("Invalid email format.");
         }
 
@@ -30,7 +31,7 @@ namespace BankSimulation.Application.Extensions.Validators
             return ruleBuilder
                 .NotEmpty().WithMessage("Password is required.")
                 .MinimumLength(8).WithMessage("Password must be at least 8 characters long.")
-                .MaximumLength(256).WithMessage("Password cannot exceed 256 characters.")
+                .MaximumLength(255).WithMessage("Password cannot exceed 255 characters.")
                 .Matches(@"(?=.*\d)").WithMessage("Password must contain at least one digit.")
                 .Matches(@"(?=.*[A-Z])").WithMessage("Password must contain at least one uppercase letter.")
                 .Matches(@"(?=.*[a-z])").WithMessage("Password must contain at least one lowercase letter.")

@@ -9,11 +9,7 @@ namespace BankSimulation.Infrastructure.Persistence.Configurations
         public void Configure(EntityTypeBuilder<RefreshToken> builder)
         {
             builder.Property(rt => rt.Token)
-                .IsRequired()
-                .HasMaxLength(256);
-
-            builder.Property(rt => rt.ExpirationDate)
-                .IsRequired();
+                .HasMaxLength(88);
         }
     }
 }

@@ -9,20 +9,19 @@ namespace BankSimulation.Infrastructure.Persistence.Configurations
         public void Configure(EntityTypeBuilder<User> builder)
         {
             builder.Property(u => u.FirstName)
-                .IsRequired()
                 .HasMaxLength(64);
 
             builder.Property(u => u.LastName)
-                .IsRequired()
                 .HasMaxLength(64);
 
             builder.Property(u => u.Email)
-                .IsRequired()
-                .HasMaxLength(256);
+                .HasMaxLength(254);
 
             builder.Property(u => u.Password)
-                .IsRequired()
-                .HasMaxLength(256);
+                .HasMaxLength(60);
+
+            builder.Property(u => u.CreationDate)
+                .HasDefaultValueSql("GETUTCDATE()");
 
             builder.HasOne(u => u.SecurityQuestion)
                 .WithOne(sq => sq.User)
@@ -31,7 +30,7 @@ namespace BankSimulation.Infrastructure.Persistence.Configurations
             builder.HasMany(u => u.BankAccounts)
                 .WithOne(ba => ba.User)
                 .HasForeignKey(ba => ba.UserId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(u => u.RefreshToken)
                 .WithOne(rt => rt.User)

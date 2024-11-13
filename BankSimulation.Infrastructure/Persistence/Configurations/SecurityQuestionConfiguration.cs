@@ -9,12 +9,10 @@ namespace BankSimulation.Infrastructure.Persistence.Configurations
         public void Configure(EntityTypeBuilder<SecurityQuestion> builder)
         {
             builder.Property(sq => sq.Question)
-                .IsRequired()
                 .HasMaxLength(128);
 
             builder.Property(sq => sq.Answer)
-                .IsRequired()
-                .HasMaxLength(256);
+                .HasMaxLength(255);
         }
     }
 }

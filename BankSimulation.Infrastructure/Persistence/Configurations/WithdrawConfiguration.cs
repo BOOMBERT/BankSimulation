@@ -10,6 +10,9 @@ namespace BankSimulation.Infrastructure.Persistence.Configurations
         {
             builder.Property(w => w.Amount)
                 .HasPrecision(18, 2);
+
+            builder.Property(w => w.Date)
+                .HasDefaultValueSql("GETUTCDATE()");
         }
     }
 }

@@ -9,12 +9,12 @@ namespace BankSimulation.Domain.Entities
         public string LastName { get; set; }
         public string Email { get; set; }
         public string Password { get; set; }
-        public DateTime CreationDate { get; set; } = DateTime.UtcNow;
+        public DateTime CreationDate { get; set; }
         public bool IsDeleted { get; set; }
+        public IList<AccessRole> AccessRoles { get; set; } = new List<AccessRole>();
 
+        public RefreshToken RefreshToken { get; set; }
         public SecurityQuestion SecurityQuestion { get; set; }
         public ICollection<BankAccount> BankAccounts { get; set; } = new List<BankAccount>();
-        public RefreshToken RefreshToken { get; set; }
-        public IList<AccessRole> AccessRoles { get; set; } = new List<AccessRole>();
     }
 }
