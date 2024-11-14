@@ -46,7 +46,7 @@ If this happens, please __visit__ the API provider's website to __generate__ a n
 ![banksimulation-swagger-ui-screenshot](https://github.com/user-attachments/assets/ee09d3d7-1ba2-47a1-bf7c-76bfc6606080)
 
 ## 🔹 Database diagram
-![banksimulation-database-diagram-screenshot](https://github.com/user-attachments/assets/0ec40669-1e34-4900-8cd8-a87b975dd2ff)
+![banksimulation-database-diagram-screenshot](https://github.com/user-attachments/assets/82aa1a4f-845b-40b6-b470-90c010c8a9b0)
 
 ## 🔹 Run locally
 - __*Prerequisites:*__
